@@ -1,0 +1,88 @@
+<div xmlns:th="http://www.thymeleaf.org" th:fragment="sidebar">
+    <aside id="sidebar"
+           class="bg-white border-r border-[#e5e7eb] shadow-sm transition-all duration-300 ease-in-out w-[240px] min-h-screen relative">
+        <div class="flex items-center justify-between px-4 py-4 border-b border-[#e5e7eb]">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-[#3b82f6] to-[#1d4ed8] text-white flex items-center justify-center font-bold">
+                    E
+                </div>
+                <div class="sidebar-text">
+                    <p class="text-sm font-semibold text-[#374151]">E-Pharma POS</p>
+                    <p class="text-xs text-[#6b7280]">Admin Panel</p>
+                </div>
+            </div>
+            <button id="toggleBtn" class="p-2 rounded-lg hover:bg-[#eff6ff] text-[#374151] transition">
+                <span class="material-symbols-outlined">menu_open</span>
+            </button>
+        </div>
+
+        <nav class="px-3 py-4 space-y-1">
+            <a th:href="@{/}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-[#374151] hover:bg-[#eff6ff] transition">
+                <span class="material-symbols-outlined">dashboard</span>
+                <span class="sidebar-text text-sm font-medium">Overview</span>
+            </a>
+
+            <a th:href="@{/pos}" class="flex items-center gap-3 px-3 py-2 rounded-lg bg-gradient-to-r from-[#3b82f6] to-[#1d4ed8] text-white shadow-sm">
+                <span class="material-symbols-outlined">point_of_sale</span>
+                <span class="sidebar-text text-sm font-medium">Point of Sale</span>
+            </a>
+
+            <a th:href="@{/customers}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-[#374151] hover:bg-[#eff6ff] transition">
+                <span class="material-symbols-outlined">groups</span>
+                <span class="sidebar-text text-sm font-medium">Customer</span>
+            </a>
+
+            <a th:href="@{/stock}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-[#374151] hover:bg-[#eff6ff] transition">
+                <span class="material-symbols-outlined">inventory_2</span>
+                <span class="sidebar-text text-sm font-medium">Stock Management</span>
+            </a>
+
+            <a th:href="@{/products}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-[#374151] hover:bg-[#eff6ff] transition">
+                <span class="material-symbols-outlined">medication</span>
+                <span class="sidebar-text text-sm font-medium">Product Catalog</span>
+            </a>
+
+            <a th:href="@{/stock-alerts}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-[#374151] hover:bg-[#eff6ff] transition">
+                <span class="material-symbols-outlined">notifications_active</span>
+                <span class="sidebar-text text-sm font-medium">Stock Alerts</span>
+            </a>
+
+            <a th:href="@{/ai-analytics}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-[#374151] hover:bg-[#eff6ff] transition">
+                <span class="material-symbols-outlined">auto_awesome</span>
+                <span class="sidebar-text text-sm font-medium">AI Analytics</span>
+            </a>
+
+            <a th:href="@{/reports}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-[#374151] hover:bg-[#eff6ff] transition">
+                <span class="material-symbols-outlined">bar_chart</span>
+                <span class="sidebar-text text-sm font-medium">Analytics & Reports</span>
+            </a>
+
+            <a th:href="@{/transactions}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-[#374151] hover:bg-[#eff6ff] transition">
+                <span class="material-symbols-outlined">receipt_long</span>
+                <span class="sidebar-text text-sm font-medium">Transaction History</span>
+            </a>
+
+            <a th:href="@{/ai-config}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-[#374151] hover:bg-[#eff6ff] transition">
+                <span class="material-symbols-outlined">tune</span>
+                <span class="sidebar-text text-sm font-medium">AI Configuration</span>
+            </a>
+
+            <a th:href="@{/profile}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-[#374151] hover:bg-[#eff6ff] transition">
+                <span class="material-symbols-outlined">account_circle</span>
+                <span class="sidebar-text text-sm font-medium">User Profile</span>
+            </a>
+
+            <a th:href="@{/settings}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-[#374151] hover:bg-[#eff6ff] transition">
+                <span class="material-symbols-outlined">settings</span>
+                <span class="sidebar-text text-sm font-medium">System Settings</span>
+            </a>
+        </nav>
+
+        <div class="absolute bottom-0 left-0 right-0 px-3 py-4 border-t border-[#e5e7eb] bg-white">
+            <a th:href="@{/logout}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-[#374151] hover:bg-[#eff6ff] transition">
+                <span class="material-symbols-outlined">logout</span>
+                <span class="sidebar-text text-sm font-medium">Sign Out</span>
+            </a>
+        </div>
+    </aside>
+</div>

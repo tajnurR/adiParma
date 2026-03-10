@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:fragment="layout(content)">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title th:text="${title} ?: 'AdiPharma'">AdiPharma</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400;500;600" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        html, body { height: 100%; }
+        body { font-family: "Inter", sans-serif; }
+        .material-symbols-outlined { font-variation-settings: "FILL" 0, "wght" 500, "GRAD" 0, "opsz" 24; }
+    </style>
+</head>
+<body class="bg-[#eef4fb]">
+<div class="min-h-screen flex">
+    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+    <main class="flex-1 p-6">
+        <div th:replace="${content}"></div>
+    </main>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script>
+    $(function () {
+        $("#toggleBtn").on("click", function () {
+            const $sidebar = $("#sidebar");
+            const isCollapsed = $sidebar.hasClass("w-[80px]");
+
+            if (isCollapsed) {
+                $sidebar.removeClass("w-[80px]").addClass("w-[240px]");
+                $(".sidebar-text").removeClass("hidden");
+                $("#toggleBtn .material-symbols-outlined").text("menu_open");
+            } else {
+                $sidebar.removeClass("w-[240px]").addClass("w-[80px]");
+                $(".sidebar-text").addClass("hidden");
+                $("#toggleBtn .material-symbols-outlined").text("menu");
+            }
+        });
+    });
+</script>
+</body>
+</html>
