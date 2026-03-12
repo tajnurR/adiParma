@@ -21,6 +21,9 @@ window.BusinessPages.register("pos", function (root) {
     const totalAmount = root.querySelector(".pos-total-amount");
     const changeAmount = root.querySelector(".pos-change-amount");
     const cashInput = root.querySelector(".pos-cash-input");
+    const customerSelect = root.querySelector("#pos-customer-select");
+    const posState = { selectedCustomer: null };
+    root.posState = posState;
 
     if (!productsContainer) return root;
 
@@ -183,6 +186,146 @@ window.BusinessPages.register("pos", function (root) {
     if (cashInput) {
         cashInput.addEventListener("input", updateTotals);
     }
+
+    function loadTomSelectAssets() {
+        if (window.TomSelect) return Promise.resolve();
+
+        const cssId = "tom-select-css";
+        const jsId = "tom-select-js";
+
+        if (!document.getElementById(cssId)) {
+            const link = document.createElement("link");
+            link.id = cssId;
+            link.rel = "stylesheet";
+            link.href = "https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css";
+            document.head.appendChild(link);
+        }
+
+        return new Promise((resolve, reject) => {
+            if (document.getElementById(jsId)) {
+                resolve();
+                return;
+            }
+            const script = document.createElement("script");
+            script.id = jsId;
+            script.src = "https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js";
+            script.onload = () => resolve();
+            script.onerror = () => reject(new Error("Failed to load Tom Select"));
+            document.body.appendChild(script);
+        });
+    }
+
+    function initCustomerSelect() {
+        if (!customerSelect || !window.TomSelect) return;
+
+        const cache = new Map();
+        const inflight = new Map();
+        let errorState = false;
+
+        function normalizeQuery(query) {
+            return query.trim().toLowerCase();
+        }
+
+        function mapCustomer(customer) {
+            return {
+                id: String(customer.id),
+                name: customer.name || "Unknown",
+                phone: customer.phone || "",
+                email: customer.email || "",
+                address: customer.address || ""
+            };
+        }
+
+        const select = new TomSelect(customerSelect, {
+            valueField: "id",
+            labelField: "name",
+            searchField: [],
+            maxItems: 1,
+            create: false,
+            preload: false,
+            closeAfterSelect: true,
+            loadThrottle: 280,
+            shouldLoad: (query) => normalizeQuery(query).length >= 2,
+            render: {
+                option: function (data, escape) {
+                    const phone = data.phone ? `<div class="customer-meta">${escape(data.phone)}</div>` : "";
+                    const extra = !data.phone && data.email ? `<div class="customer-meta">${escape(data.email)}</div>` : "";
+                    return `
+                        <div>
+                            <div class="customer-name">${escape(data.name)}</div>
+                            ${phone || extra}
+                        </div>
+                    `;
+                },
+                item: function (data, escape) {
+                    return `<div class="customer-name">${escape(data.name)}</div>`;
+                },
+                no_results: function () {
+                    return `<div class="customer-meta">${errorState ? "Unable to load customers" : "No customer found"}</div>`;
+                },
+                loading: function () {
+                    return `<div class="customer-meta">Searching customers...</div>`;
+                }
+            },
+            load: function (query, callback) {
+                const normalized = normalizeQuery(query);
+                if (normalized.length < 2) {
+                    callback();
+                    return;
+                }
+
+                if (cache.has(normalized)) {
+                    callback(cache.get(normalized));
+                    return;
+                }
+
+                if (inflight.has(normalized)) {
+                    inflight.get(normalized).push(callback);
+                    return;
+                }
+
+                inflight.set(normalized, [callback]);
+                errorState = false;
+
+                fetch(`/api/customers/search?q=${encodeURIComponent(normalized)}`)
+                    .then((response) => response.json())
+                    .then((data) => {
+                        const options = Array.isArray(data) ? data.map(mapCustomer) : [];
+                        cache.set(normalized, options);
+                        inflight.get(normalized).forEach((cb) => cb(options));
+                        inflight.delete(normalized);
+                    })
+                    .catch(() => {
+                        errorState = true;
+                        const callbacks = inflight.get(normalized) || [];
+                        callbacks.forEach((cb) => cb());
+                        inflight.delete(normalized);
+                    });
+            }
+        });
+
+        select.on("change", (value) => {
+            if (!value) {
+                posState.selectedCustomer = null;
+                return;
+            }
+            const option = select.options[value];
+            posState.selectedCustomer = {
+                id: value,
+                name: option?.name || "",
+                phone: option?.phone || ""
+            };
+        });
+    }
+
+    loadTomSelectAssets()
+        .then(initCustomerSelect)
+        .catch(() => {
+            if (customerSelect) {
+                customerSelect.outerHTML =
+                    '<input type="text" placeholder="Search customer or type name to create new..." aria-label="Search customer" class="pos-customer-fallback" />';
+            }
+        });
 
     renderProducts();
     renderCart();

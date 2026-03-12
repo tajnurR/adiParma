@@ -158,7 +158,82 @@
     color: #0f172a;
 }
 
-.pos-customer-search input {
+.pos-customer-search {
+    width: 100%;
+}
+
+.pos-customer-select {
+    width: 100%;
+}
+
+.pos-customer-search .ts-control {
+    border: 1px solid #cfd6e0;
+    border-radius: 10px;
+    padding: 8px 10px;
+    font-size: 13px;
+    color: #0f172a;
+    background: #f9fafb;
+    box-shadow: none;
+}
+
+.pos-customer-search .ts-control input {
+    font-size: 13px;
+    color: #0f172a;
+}
+
+.pos-customer-search .ts-control input::placeholder {
+    color: #9ca3af;
+}
+
+.pos-customer-search .ts-control.focus {
+    border-color: #93b4f7;
+    box-shadow: 0 0 0 3px rgba(147, 180, 247, 0.25);
+    background: #ffffff;
+}
+
+.pos-customer-search .ts-dropdown {
+    border: 1px solid #d6dde6;
+    border-radius: 12px;
+    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
+    padding: 6px;
+    background: #ffffff;
+}
+
+.pos-customer-search .ts-dropdown .ts-dropdown-content {
+    max-height: 220px;
+}
+
+.pos-customer-search .ts-option {
+    border-radius: 8px;
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.pos-customer-search .ts-option .customer-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.pos-customer-search .ts-option .customer-meta {
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.pos-customer-search .ts-option.active {
+    background: #eef4ff;
+    color: #0f172a;
+}
+
+.pos-customer-search .ts-control .item {
+    font-size: 13px;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.pos-customer-fallback {
     width: 100%;
     border: 1px solid #cfd6e0;
     border-radius: 10px;
@@ -168,7 +243,7 @@
     background: #f9fafb;
 }
 
-.pos-customer-search input::placeholder {
+.pos-customer-fallback::placeholder {
     color: #9ca3af;
 }
 
