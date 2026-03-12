@@ -1,3 +1,73 @@
-<section class="bp-page-card">
-    <p class="bp-page-text">Welcome to Point of Sale Page</p>
-</section>
+<div class="pos-layout">
+    <section class="pos-left">
+        <div class="pos-search-area">
+            <div class="pos-search-field">
+                <span class="material-symbols-outlined pos-search-icon">search</span>
+                <input type="text" class="pos-search-input" placeholder="Search products" aria-label="Search products" />
+            </div>
+            <p class="pos-helper-text">Scan with USB barcode scanner in search field, use AI Scan Prescription, or check drug interactions</p>
+        </div>
+
+        <div id="pos-products" class="pos-products-grid" aria-live="polite"></div>
+    </section>
+
+    <aside class="pos-right" aria-label="Cart and billing">
+        <div class="pos-cart">
+            <h2 class="pos-cart-title">Point of Sale</h2>
+
+            <div class="pos-customer-search">
+                <input type="text" placeholder="Search customer or type name to create new..." aria-label="Search customer" />
+            </div>
+
+            <div class="pos-cart-header">
+                <div class="pos-cart-header-left">Cart Items (0)</div>
+                <button class="pos-action-link" id="pos-clear-cart" type="button">Clear All</button>
+            </div>
+
+            <div id="pos-cart-items" class="pos-cart-items"></div>
+
+            <div class="pos-empty" id="pos-empty-state">
+                <div class="pos-empty-icon">
+                    <span class="material-symbols-outlined">shopping_bag</span>
+                </div>
+                <p>No items in cart</p>
+            </div>
+
+            <div class="pos-section">
+                <div class="pos-section-title">Payment Method</div>
+                <div class="pos-payments" role="group" aria-label="Payment method">
+                    <button class="pos-payment-btn active" type="button">💵 Cash</button>
+                    <button class="pos-payment-btn" type="button">💳 Card</button>
+                    <button class="pos-payment-btn" type="button">📱 Mobile</button>
+                    <button class="pos-payment-btn" type="button">🧾 Other</button>
+                </div>
+            </div>
+
+            <div class="pos-section">
+                <div class="pos-cash-row">
+                    <div class="pos-cash-label">Cash Received:</div>
+                    <input class="pos-cash-input" type="text" value="0.00" aria-label="Cash received" />
+                </div>
+                <div class="pos-cash-buttons">
+                    <button type="button">50</button>
+                    <button type="button">100</button>
+                    <button type="button">200</button>
+                    <button type="button">500</button>
+                    <button type="button">1000</button>
+                    <button type="button" class="pos-exact">Exact</button>
+                </div>
+                <div class="pos-change-row">
+                    <span>Change:</span>
+                    <span class="pos-change-amount">$0.00</span>
+                </div>
+            </div>
+
+            <div class="pos-total">
+                <span>Total:</span>
+                <span class="pos-total-amount">$0.00</span>
+            </div>
+
+            <button class="pos-complete" type="button">Complete Sale</button>
+        </div>
+    </aside>
+</div>

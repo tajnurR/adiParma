@@ -1,1 +1,459 @@
-/* Point of Sale page styles (kept minimal to preserve shared UI) */
+.pos-layout {
+    display: grid;
+    grid-template-columns: 3fr 2fr;
+    gap: 24px;
+    min-height: 520px;
+}
+
+.pos-left {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.pos-search-area {
+    background: #ffffff;
+    border: 1px solid #d6dde6;
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+}
+
+.pos-search-field {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid #cfd6e0;
+    border-radius: 12px;
+    padding: 10px 12px;
+    background: #f9fafb;
+}
+
+.pos-search-icon {
+    font-size: 20px;
+    color: #9ca3af;
+}
+
+.pos-search-input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    outline: none;
+    font-size: 14px;
+    color: #0f172a;
+}
+
+.pos-search-input::placeholder {
+    color: #9ca3af;
+    font-weight: 500;
+}
+
+.pos-helper-text {
+    margin-top: 10px;
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.pos-products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+}
+
+.pos-card {
+    background: #ffffff;
+    border: 1px solid #d6dde6;
+    border-radius: 12px;
+    padding: 12px 14px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    cursor: pointer;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.pos-card:hover {
+    box-shadow: 0 6px 14px rgba(15, 23, 42, 0.08);
+    transform: translateY(-1px);
+}
+
+.pos-card-header {
+    display: flex;
+    align-items: start;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.pos-card-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.pos-card-subtitle {
+    font-size: 12px;
+    color: #4b5563;
+    margin-top: 4px;
+}
+
+.pos-rx-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 6px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #ef4444;
+    background: #fee2e2;
+}
+
+.pos-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 12px;
+}
+
+.pos-price {
+    font-weight: 600;
+    color: #2563eb;
+}
+
+.pos-stock {
+    color: #6b7280;
+}
+
+.pos-right {
+    background: #ffffff;
+    border: 1px solid #d6dde6;
+    border-radius: 16px;
+    padding: 20px;
+    min-height: 520px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+}
+
+.pos-cart {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.pos-cart-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.pos-customer-search input {
+    width: 100%;
+    border: 1px solid #cfd6e0;
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 13px;
+    color: #0f172a;
+    background: #f9fafb;
+}
+
+.pos-customer-search input::placeholder {
+    color: #9ca3af;
+}
+
+.pos-cart-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #edf0f5;
+}
+
+.pos-cart-header-left {
+    font-size: 14px;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.pos-action-link {
+    border: none;
+    background: transparent;
+    color: #6b7280;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.pos-empty {
+    border-bottom: 1px solid #edf0f5;
+    padding: 24px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    color: #9ca3af;
+}
+
+.pos-empty-icon {
+    width: 44px;
+    height: 44px;
+    border: 1px solid #d6dde6;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f9fafb;
+}
+
+.pos-empty-icon .material-symbols-outlined {
+    color: #9ca3af;
+}
+
+.pos-cart-items {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.pos-cart-item {
+    border: 1px solid #d6dde6;
+    border-radius: 10px;
+    padding: 8px 10px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 70px 80px 70px 26px;
+    align-items: center;
+    gap: 8px;
+    background: #ffffff;
+}
+
+.pos-cart-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.pos-cart-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.pos-cart-sku {
+    font-size: 11px;
+    color: #6b7280;
+}
+
+.pos-cart-price {
+    font-size: 12px;
+    font-weight: 600;
+    color: #0f172a;
+    text-align: right;
+}
+
+.pos-qty-control {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    justify-content: center;
+}
+
+.pos-qty-btn {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    border: 1px solid #cfd6e0;
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.pos-qty-value {
+    font-size: 12px;
+    font-weight: 600;
+    color: #0f172a;
+    min-width: 14px;
+    text-align: center;
+}
+
+.pos-cart-total {
+    font-size: 12px;
+    font-weight: 600;
+    color: #2563eb;
+    text-align: right;
+}
+
+.pos-cart-remove {
+    border: none;
+    background: transparent;
+    color: #ef4444;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.pos-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.pos-section-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: #6b7280;
+}
+
+.pos-payments {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+}
+
+.pos-payment-btn {
+    border: 1px solid #cfd6e0;
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 6px 8px;
+    font-size: 12px;
+    color: #374151;
+    cursor: pointer;
+}
+
+.pos-payment-btn.active {
+    background: #2563eb;
+    color: #ffffff;
+    border-color: #2563eb;
+}
+
+.pos-cash-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.pos-cash-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #6b7280;
+}
+
+.pos-cash-input {
+    width: 90px;
+    border: 1px solid #cfd6e0;
+    border-radius: 8px;
+    padding: 6px 8px;
+    font-size: 12px;
+    text-align: right;
+    color: #0f172a;
+    background: #f9fafb;
+}
+
+.pos-cash-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.pos-cash-buttons button {
+    border: 1px solid #cfd6e0;
+    background: #ffffff;
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.pos-cash-buttons .pos-exact {
+    border-color: #bfdbfe;
+    color: #2563eb;
+}
+
+.pos-change-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.pos-change-amount {
+    font-weight: 600;
+    color: #16a34a;
+}
+
+.pos-total {
+    background: #f0f6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 10px;
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 13px;
+    font-weight: 600;
+    color: #2563eb;
+}
+
+.pos-total span:first-child {
+    color: #0f172a;
+}
+
+.pos-total-amount {
+    font-size: 16px;
+}
+
+.pos-complete {
+    width: 100%;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 12px;
+    background: #2f63e3;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+@media (max-width: 1024px) {
+    .pos-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .pos-right {
+        min-height: 240px;
+    }
+}
+
+@media (max-width: 640px) {
+    .pos-products-grid {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    }
+
+    .pos-payments {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .pos-cart-item {
+        grid-template-columns: minmax(0, 1fr) 64px 70px 24px;
+        grid-template-areas:
+            "info price qty remove"
+            "total total total total";
+        row-gap: 6px;
+    }
+
+    .pos-cart-info { grid-area: info; }
+    .pos-cart-price { grid-area: price; }
+    .pos-qty-control { grid-area: qty; }
+    .pos-cart-remove { grid-area: remove; }
+    .pos-cart-total {
+        grid-area: total;
+        text-align: left;
+        color: #2563eb;
+    }
+}
