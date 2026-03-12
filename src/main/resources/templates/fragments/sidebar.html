@@ -17,17 +17,17 @@
         </div>
 
         <nav class="px-3 py-4 space-y-1">
-            <a th:href="@{/}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-[#374151] hover:bg-[#eff6ff] transition">
+            <a th:href="@{/}" data-page="overview" class="menu-item active flex items-center gap-3 px-3 py-2 rounded-lg text-[#374151] hover:bg-[#eff6ff] transition" aria-current="page">
                 <span class="material-symbols-outlined">dashboard</span>
                 <span class="sidebar-text text-sm font-medium">Overview</span>
             </a>
 
-            <a th:href="@{/pos}" class="flex items-center gap-3 px-3 py-2 rounded-lg bg-gradient-to-r from-[#3b82f6] to-[#1d4ed8] text-white shadow-sm">
+            <a th:href="@{/pos}" data-page="pos" class="menu-item flex items-center gap-3 px-3 py-2 rounded-lg text-[#374151] hover:bg-[#eff6ff] transition" aria-current="false">
                 <span class="material-symbols-outlined">point_of_sale</span>
                 <span class="sidebar-text text-sm font-medium">Point of Sale</span>
             </a>
 
-            <a th:href="@{/customers}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-[#374151] hover:bg-[#eff6ff] transition">
+            <a th:href="@{/customers}" data-page="customer" class="menu-item flex items-center gap-3 px-3 py-2 rounded-lg text-[#374151] hover:bg-[#eff6ff] transition" aria-current="false">
                 <span class="material-symbols-outlined">groups</span>
                 <span class="sidebar-text text-sm font-medium">Customer</span>
             </a>

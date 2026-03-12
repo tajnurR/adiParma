@@ -13,20 +13,123 @@
         html, body { height: 100%; }
         body { font-family: "Inter", sans-serif; }
         .material-symbols-outlined { font-variation-settings: "FILL" 0, "wght" 500, "GRAD" 0, "opsz" 24; }
+        .menu-item.active {
+            background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+            color: #ffffff;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.12);
+        }
     </style>
 </head>
 <body class="bg-[#eef4fb]">
 <div class="min-h-screen flex">
     <div th:replace="~{fragments/sidebar :: sidebar}"></div>
 
-    <main class="flex-1 p-6">
-        <div th:replace="${content}"></div>
+    <main class="flex-1 p-6 flex">
+        <div id="main-content" class="flex-1" th:insert="${content}"></div>
     </main>
 </div>
 
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script>
     $(function () {
+        const pages = {
+            overview: {
+                html: "/business-pages/overview/overview.html",
+                css: "/business-pages/overview/overview.css",
+                js: "/business-pages/overview/overview.js"
+            },
+            pos: {
+                html: "/business-pages/point-of-sale/point-of-sale.html",
+                css: "/business-pages/point-of-sale/point-of-sale.css",
+                js: "/business-pages/point-of-sale/point-of-sale.js"
+            },
+            customer: {
+                html: "/business-pages/customer/customer.html",
+                css: "/business-pages/customer/customer.css",
+                js: "/business-pages/customer/customer.js"
+            }
+        };
+        const commonAssets = {
+            css: "/business-pages/common/common.css",
+            js: "/business-pages/common/common.js"
+        };
+
+        const $content = $("#main-content");
+
+        function ensureStyle(id, href) {
+            if (!document.getElementById(id)) {
+                $("<link>", { id, rel: "stylesheet", href }).appendTo("head");
+            }
+        }
+
+        function loadScriptOnce(id, src) {
+            return new Promise((resolve, reject) => {
+                if (document.getElementById(id)) {
+                    resolve();
+                    return;
+                }
+                const script = document.createElement("script");
+                script.id = id;
+                script.src = src;
+                script.onload = () => resolve();
+                script.onerror = () => reject(new Error("Failed to load script"));
+                document.body.appendChild(script);
+            });
+        }
+
+        async function ensureCommonAssets() {
+            ensureStyle("bp-style-common", commonAssets.css);
+            try {
+                await loadScriptOnce("bp-script-common", commonAssets.js);
+            } catch (error) {
+                // Keep navigation functional even if common assets fail.
+            }
+        }
+
+        async function renderPage(key) {
+            const pageKey = pages[key] ? key : "overview";
+            const page = pages[pageKey];
+
+            await ensureCommonAssets();
+            ensureStyle(`bp-style-${pageKey}`, page.css);
+
+            try {
+                const html = await $.get(page.html);
+                $content.html(html);
+            } catch (error) {
+                $content.html(
+                    `<section class="rounded-xl border border-[#e5e7eb] bg-white p-6 shadow-sm">
+                        <p class="text-[#b91c1c]">Unable to load page content.</p>
+                    </section>`
+                );
+            }
+
+            try {
+                await loadScriptOnce(`bp-script-${pageKey}`, page.js);
+                if (window.BusinessPages && window.BusinessPages[pageKey] && typeof window.BusinessPages[pageKey].init === "function") {
+                    window.BusinessPages[pageKey].init($content[0]);
+                }
+            } catch (error) {
+                // Keep UI responsive even if page script fails.
+            }
+
+            $(".menu-item").removeClass("active").attr("aria-current", "false");
+            $(`.menu-item[data-page="${pageKey}"]`).addClass("active").attr("aria-current", "page");
+        }
+
+        function getPageKeyFromPath() {
+            const path = window.location.pathname || "/";
+            if (path === "/pos") return "pos";
+            if (path === "/customers") return "customer";
+            return "overview";
+        }
+
+        $(".menu-item[data-page]").on("click", function (event) {
+            event.preventDefault();
+            const key = $(this).data("page");
+            renderPage(key);
+        });
+
         $("#toggleBtn").on("click", function () {
             const $sidebar = $("#sidebar");
             const isCollapsed = $sidebar.hasClass("w-[80px]");
@@ -41,6 +144,8 @@
                 $("#toggleBtn .material-symbols-outlined").text("menu");
             }
         });
+
+        renderPage(getPageKeyFromPath());
     });
 </script>
 </body>
