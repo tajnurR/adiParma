@@ -1,14 +1,7 @@
 package com.adipharma.controller;
 
-import com.adipharma.entity.AdiCustomar;
-import com.adipharma.repository.AdiCustomarRepository;
-import java.util.HashMap;
-import java.util.List;
+import com.adipharma.service.CustomerService;
 import java.util.Map;
-import java.util.Objects;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,10 +15,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/customers")
 public class CustomerApiController {
 
-    private final AdiCustomarRepository customarRepository;
+    private final CustomerService customerService;
 
-    public CustomerApiController(AdiCustomarRepository customarRepository) {
-        this.customarRepository = customarRepository;
+    public CustomerApiController(CustomerService customerService) {
+        this.customerService = customerService;
     }
 
     @GetMapping("/search")
@@ -34,69 +27,23 @@ public class CustomerApiController {
         @RequestParam(name = "page", required = false, defaultValue = "0") int page,
         @RequestParam(name = "size", required = false, defaultValue = "10") int size
     ) {
-        String trimmed = query == null ? "" : query.trim();
-        int safePage = Math.max(page, 0);
-        int safeSize = Math.max(1, Math.min(size, 10));
-
-        Map<String, Object> response = new HashMap<>();
-        if (trimmed.isEmpty()) {
-            response.put("items", List.of());
-            response.put("page", safePage);
-            response.put("size", safeSize);
-            response.put("hasMore", false);
-            response.put("total", 0);
-            return response;
-        }
-
-        PageRequest pageRequest = PageRequest.of(safePage, safeSize, Sort.by("name").ascending());
-        Page<AdiCustomar> results = customarRepository
-            .findByNameContainingIgnoreCaseOrContactContainingIgnoreCase(trimmed, trimmed, pageRequest);
-
-        List<Map<String, Object>> items = results.stream().map(customer -> {
-            Map<String, Object> item = new HashMap<>();
-            item.put("id", customer.getId());
-            item.put("name", customer.getName());
-            item.put("phone", customer.getContact());
-            item.put("age", customer.getAge());
-            item.put("address", customer.getAddress());
-            return item;
-        }).toList();
-
-        response.put("items", items);
-        response.put("page", safePage);
-        response.put("size", safeSize);
-        response.put("hasMore", results.hasNext());
-        response.put("total", results.getTotalElements());
-        return response;
+        return customerService.search(query, page, size);
     }
 
     @PostMapping
     public ResponseEntity<?> create(@RequestBody CreateCustomerRequest request) {
-        if (request == null || isBlank(request.name) || isBlank(request.phone) || isBlank(request.age) || isBlank(request.address)) {
+        if (request == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(Map.of("message", "name, phone, age, and address are required"));
         }
-        if (!request.age.matches("^\\d{1,3}$")) {
+        try {
+            return ResponseEntity.ok(
+                customerService.create(request.name, request.phone, request.age, request.address)
+            );
+        } catch (IllegalArgumentException ex) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(Map.of("message", "age must be 1 to 3 digits"));
+                .body(Map.of("message", ex.getMessage()));
         }
-
-        AdiCustomar customar = AdiCustomar.builder()
-            .name(request.name.trim())
-            .contact(request.phone.trim())
-            .age(request.age)
-            .address(request.address.trim())
-            .build();
-
-        AdiCustomar saved = customarRepository.save(customar);
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("id", saved.getId());
-        response.put("name", saved.getName());
-        response.put("phone", saved.getContact());
-        response.put("age", saved.getAge());
-        response.put("address", saved.getAddress());
-        return ResponseEntity.ok(response);
     }
 
     public static class CreateCustomerRequest {
@@ -106,7 +53,4 @@ public class CustomerApiController {
         public String address;
     }
 
-    private static boolean isBlank(String value) {
-        return value == null || value.trim().isEmpty();
-    }
 }
