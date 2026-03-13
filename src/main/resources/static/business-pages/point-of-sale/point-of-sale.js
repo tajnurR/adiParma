@@ -237,7 +237,8 @@ window.BusinessPages.register("pos", function (root) {
                 id: createOptionId,
                 name: query ? `Create "${query}"` : "Create New Customer",
                 query: query || "",
-                isCreate: true
+                isCreate: true,
+                $order: -1000
             };
         }
 
@@ -260,6 +261,27 @@ window.BusinessPages.register("pos", function (root) {
                     <div class="pos-customer-create-sub">${escape(subLabel)}</div>
                 </div>
             `;
+        }
+
+        function getCurrentSearchText(select) {
+            const inputValue = select.control_input?.value?.trim();
+            if (inputValue) return inputValue;
+            if (select.items.length) {
+                const option = select.options[select.items[0]];
+                return option?.name || "";
+            }
+            return "";
+        }
+
+        function syncCreateOption(select, query) {
+            const nextQuery = query ?? getCurrentSearchText(select);
+            const option = buildCreateOption(nextQuery);
+            if (select.options[createOptionId]) {
+                select.updateOption(createOptionId, option);
+            } else {
+                select.addOption(option);
+            }
+            select.refreshOptions(false);
         }
 
         function fetchCustomers(query, page) {
@@ -293,13 +315,23 @@ window.BusinessPages.register("pos", function (root) {
                         <span>Age *</span>
                         <input type="number" name="age" min="0" required />
                     </label>
+                    <label class="pos-customer-create-field">
+                        <span>Address *</span>
+                        <input type="text" name="address" required />
+                    </label>
                 </div>
                 <div class="pos-customer-create-actions">
                     <button type="button" class="pos-customer-create-close">Close</button>
                     <button type="button" class="pos-customer-create-submit">Submit</button>
                 </div>
             `;
-            select.dropdown.appendChild(createPanel);
+            const customerSearch = customerSelect.closest(".pos-customer-search");
+            const container = customerSearch?.parentElement || root;
+            if (customerSearch && customerSearch.nextSibling) {
+                container.insertBefore(createPanel, customerSearch.nextSibling);
+            } else {
+                container.appendChild(createPanel);
+            }
 
             const closeButton = createPanel.querySelector(".pos-customer-create-close");
             const submitButton = createPanel.querySelector(".pos-customer-create-submit");
@@ -313,16 +345,19 @@ window.BusinessPages.register("pos", function (root) {
                     const nameInput = createPanel.querySelector("input[name=\"name\"]");
                     const phoneInput = createPanel.querySelector("input[name=\"phone\"]");
                     const ageInput = createPanel.querySelector("input[name=\"age\"]");
+                    const addressInput = createPanel.querySelector("input[name=\"address\"]");
                     if (!(nameInput instanceof HTMLInputElement) ||
                         !(phoneInput instanceof HTMLInputElement) ||
-                        !(ageInput instanceof HTMLInputElement)) {
+                        !(ageInput instanceof HTMLInputElement) ||
+                        !(addressInput instanceof HTMLInputElement)) {
                         return;
                     }
 
                     const nameValue = nameInput.value.trim();
                     const phoneValue = phoneInput.value.trim();
                     const ageValue = ageInput.value.trim();
-                    if (!nameValue || !phoneValue || !ageValue) {
+                    const addressValue = addressInput.value.trim();
+                    if (!nameValue || !phoneValue || !ageValue || !addressValue) {
                         return;
                     }
 
@@ -333,7 +368,8 @@ window.BusinessPages.register("pos", function (root) {
                         body: JSON.stringify({
                             name: nameValue,
                             phone: phoneValue,
-                            age: Number(ageValue)
+                            age: Number(ageValue),
+                            address: addressValue
                         })
                     })
                         .then((response) => response.json())
@@ -356,12 +392,14 @@ window.BusinessPages.register("pos", function (root) {
             const nameInput = createPanel.querySelector("input[name=\"name\"]");
             const phoneInput = createPanel.querySelector("input[name=\"phone\"]");
             const ageInput = createPanel.querySelector("input[name=\"age\"]");
+            const addressInput = createPanel.querySelector("input[name=\"address\"]");
             if (nameInput instanceof HTMLInputElement) {
-                nameInput.value = lastTypedValue.trim();
+                nameInput.value = getCurrentSearchText(select) || lastTypedValue.trim();
                 nameInput.focus();
             }
             if (phoneInput instanceof HTMLInputElement) phoneInput.value = "";
             if (ageInput instanceof HTMLInputElement) ageInput.value = "";
+            if (addressInput instanceof HTMLInputElement) addressInput.value = "";
             createPanel.classList.add("is-open");
         }
 
@@ -433,7 +471,8 @@ window.BusinessPages.register("pos", function (root) {
                 errorState = false;
 
                 if (!normalized) {
-                    callback([buildCreateOption(query)]);
+                    const fallbackQuery = query || getCurrentSearchText(select);
+                    callback([buildCreateOption(fallbackQuery)]);
                     return;
                 }
 
@@ -457,10 +496,11 @@ window.BusinessPages.register("pos", function (root) {
 
         select.on("type", (value) => {
             lastTypedValue = value;
+            syncCreateOption(select, value);
         });
 
         select.on("dropdown_open", () => {
-            ensureCreatePanel(select);
+            syncCreateOption(select);
             const dropdownContent = select.dropdown_content;
             if (!dropdownContent || dropdownContent.dataset.scrollBound) return;
             dropdownContent.dataset.scrollBound = "true";
@@ -475,8 +515,8 @@ window.BusinessPages.register("pos", function (root) {
         select.on("item_add", (value) => {
             if (value === createOptionId) {
                 select.removeItem(value, true);
+                select.close();
                 openCreatePanel(select);
-                setTimeout(() => select.open(), 0);
                 return;
             }
 
@@ -487,10 +527,15 @@ window.BusinessPages.register("pos", function (root) {
                 phone: option?.phone || ""
             };
             select.close();
+            syncCreateOption(select);
+            if (createPanel) {
+                createPanel.classList.remove("is-open");
+            }
         });
 
         select.on("clear", () => {
             posState.selectedCustomer = null;
+            syncCreateOption(select, "");
         });
     }
 

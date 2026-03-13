@@ -201,6 +201,8 @@
 
 .pos-customer-search .ts-dropdown .ts-dropdown-content {
     max-height: 220px;
+    overflow-y: auto;
+    padding-bottom: 6px;
 }
 
 .pos-customer-search .ts-option {
@@ -244,32 +246,34 @@
     color: #6b7280;
 }
 
-.pos-customer-search .pos-customer-create-panel {
-    border-top: 1px solid #edf0f5;
-    margin-top: 6px;
-    padding: 10px 6px 6px;
+.pos-customer-create-panel {
+    border: 1px solid #d6dde6;
+    border-radius: 12px;
+    padding: 12px;
+    background: #ffffff;
+    margin-top: 10px;
     display: none;
     flex-direction: column;
     gap: 10px;
 }
 
-.pos-customer-search .pos-customer-create-panel.is-open {
+.pos-customer-create-panel.is-open {
     display: flex;
 }
 
-.pos-customer-search .pos-customer-create-header {
+.pos-customer-create-header {
     font-size: 13px;
     font-weight: 600;
     color: #0f172a;
 }
 
-.pos-customer-search .pos-customer-create-body {
+.pos-customer-create-body {
     display: flex;
     flex-direction: column;
     gap: 8px;
 }
 
-.pos-customer-search .pos-customer-create-field {
+.pos-customer-create-field {
     display: flex;
     flex-direction: column;
     gap: 4px;
@@ -278,7 +282,7 @@
     color: #6b7280;
 }
 
-.pos-customer-search .pos-customer-create-field input {
+.pos-customer-create-field input {
     border: 1px solid #d6dde6;
     border-radius: 8px;
     padding: 8px 10px;
@@ -287,26 +291,26 @@
     background: #ffffff;
 }
 
-.pos-customer-search .pos-customer-create-actions {
+.pos-customer-create-actions {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
 }
 
-.pos-customer-search .pos-customer-create-actions button {
+.pos-customer-create-actions button {
     border-radius: 8px;
     padding: 8px 10px;
     font-size: 12px;
     cursor: pointer;
 }
 
-.pos-customer-search .pos-customer-create-close {
+.pos-customer-create-close {
     border: 1px solid #d6dde6;
     background: #ffffff;
     color: #6b7280;
 }
 
-.pos-customer-search .pos-customer-create-submit {
+.pos-customer-create-submit {
     border: none;
     background: #2563eb;
     color: #ffffff;

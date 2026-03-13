@@ -72,16 +72,16 @@ public class CustomerApiController {
 
     @PostMapping
     public ResponseEntity<?> create(@RequestBody CreateCustomerRequest request) {
-        if (request == null || isBlank(request.name) || isBlank(request.phone) || request.age == null) {
+        if (request == null || isBlank(request.name) || isBlank(request.phone) || request.age == null || isBlank(request.address)) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(Map.of("message", "name, phone, and age are required"));
+                .body(Map.of("message", "name, phone, age, and address are required"));
         }
 
         AdiCustomar customar = AdiCustomar.builder()
             .name(request.name.trim())
             .contact(request.phone.trim())
             .age(request.age)
-            .address(Objects.requireNonNullElse(request.address, "").trim())
+            .address(request.address.trim())
             .build();
 
         AdiCustomar saved = customarRepository.save(customar);
