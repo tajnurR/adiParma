@@ -72,9 +72,13 @@ public class CustomerApiController {
 
     @PostMapping
     public ResponseEntity<?> create(@RequestBody CreateCustomerRequest request) {
-        if (request == null || isBlank(request.name) || isBlank(request.phone) || request.age == null || isBlank(request.address)) {
+        if (request == null || isBlank(request.name) || isBlank(request.phone) || isBlank(request.age) || isBlank(request.address)) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(Map.of("message", "name, phone, age, and address are required"));
+        }
+        if (!request.age.matches("^\\d{1,3}$")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("message", "age must be 1 to 3 digits"));
         }
 
         AdiCustomar customar = AdiCustomar.builder()
@@ -98,7 +102,7 @@ public class CustomerApiController {
     public static class CreateCustomerRequest {
         public String name;
         public String phone;
-        public Integer age;
+        public String age;
         public String address;
     }
 

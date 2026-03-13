@@ -28,8 +28,8 @@ public class AdiCustomar {
     @Column(name = "contact", length = 100)
     private String contact;
 
-    @Column(name = "age")
-    private Integer age;
+    @Column(name = "age", length = 3)
+    private String age;
 
     @Column(name = "address", columnDefinition = "TEXT")
     private String address;

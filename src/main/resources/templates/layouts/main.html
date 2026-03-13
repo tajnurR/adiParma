@@ -51,7 +51,10 @@
         };
         const commonAssets = {
             css: "/business-pages/common/common.css",
-            js: "/business-pages/common/common.js"
+            js: [
+                "/business-pages/common/common.js",
+                "/business-pages/common/customer-dropdown-service.js"
+            ]
         };
 
         const $content = $("#main-content");
@@ -80,7 +83,10 @@
         async function ensureCommonAssets() {
             ensureStyle("bp-style-common", commonAssets.css);
             try {
-                await loadScriptOnce("bp-script-common", commonAssets.js);
+                for (const src of commonAssets.js) {
+                    const id = `bp-script-${src.split("/").pop().replace(/\W+/g, "-")}`;
+                    await loadScriptOnce(id, src);
+                }
             } catch (error) {
                 // Keep navigation functional even if common assets fail.
             }
