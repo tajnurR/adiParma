@@ -218,12 +218,27 @@ window.BusinessPages.register("pos", function (root) {
     function initCustomerSelect() {
         if (!customerSelect || !window.TomSelect) return;
 
-        const cache = new Map();
-        const inflight = new Map();
         let errorState = false;
+        const createOptionId = "__create_customer__";
+        const pageSize = 10;
+        let currentQuery = "";
+        let currentPage = 0;
+        let hasMore = false;
+        let isLoading = false;
+        let createPanel = null;
+        let lastTypedValue = "";
 
         function normalizeQuery(query) {
             return query.trim().toLowerCase();
+        }
+
+        function buildCreateOption(query) {
+            return {
+                id: createOptionId,
+                name: query ? `Create "${query}"` : "Create New Customer",
+                query: query || "",
+                isCreate: true
+            };
         }
 
         function mapCustomer(customer) {
@@ -231,9 +246,143 @@ window.BusinessPages.register("pos", function (root) {
                 id: String(customer.id),
                 name: customer.name || "Unknown",
                 phone: customer.phone || "",
-                email: customer.email || "",
+                age: customer.age ?? "",
                 address: customer.address || ""
             };
+        }
+
+        function renderCreateOption(data, escape) {
+            const label = data.query ? `Create "${data.query}"` : "Create New Customer";
+            const subLabel = data.query ? "Add as new customer" : "Add a new customer";
+            return `
+                <div class="pos-customer-create-option">
+                    <div class="pos-customer-create-title">+ ${escape(label)}</div>
+                    <div class="pos-customer-create-sub">${escape(subLabel)}</div>
+                </div>
+            `;
+        }
+
+        function fetchCustomers(query, page) {
+            return fetch(`/api/customers/search?q=${encodeURIComponent(query)}&page=${page}&size=${pageSize}`)
+                .then((response) => response.json())
+                .then((data) => {
+                    const items = Array.isArray(data.items) ? data.items.map(mapCustomer) : [];
+                    return {
+                        items,
+                        hasMore: Boolean(data.hasMore)
+                    };
+                });
+        }
+
+        function ensureCreatePanel(select) {
+            if (createPanel) return;
+            createPanel = document.createElement("div");
+            createPanel.className = "pos-customer-create-panel";
+            createPanel.innerHTML = `
+                <div class="pos-customer-create-header">Add New Customer</div>
+                <div class="pos-customer-create-body">
+                    <label class="pos-customer-create-field">
+                        <span>Name *</span>
+                        <input type="text" name="name" required />
+                    </label>
+                    <label class="pos-customer-create-field">
+                        <span>Phone *</span>
+                        <input type="text" name="phone" required />
+                    </label>
+                    <label class="pos-customer-create-field">
+                        <span>Age *</span>
+                        <input type="number" name="age" min="0" required />
+                    </label>
+                </div>
+                <div class="pos-customer-create-actions">
+                    <button type="button" class="pos-customer-create-close">Close</button>
+                    <button type="button" class="pos-customer-create-submit">Submit</button>
+                </div>
+            `;
+            select.dropdown.appendChild(createPanel);
+
+            const closeButton = createPanel.querySelector(".pos-customer-create-close");
+            const submitButton = createPanel.querySelector(".pos-customer-create-submit");
+            if (closeButton) {
+                closeButton.addEventListener("click", () => {
+                    createPanel.classList.remove("is-open");
+                });
+            }
+            if (submitButton) {
+                submitButton.addEventListener("click", () => {
+                    const nameInput = createPanel.querySelector("input[name=\"name\"]");
+                    const phoneInput = createPanel.querySelector("input[name=\"phone\"]");
+                    const ageInput = createPanel.querySelector("input[name=\"age\"]");
+                    if (!(nameInput instanceof HTMLInputElement) ||
+                        !(phoneInput instanceof HTMLInputElement) ||
+                        !(ageInput instanceof HTMLInputElement)) {
+                        return;
+                    }
+
+                    const nameValue = nameInput.value.trim();
+                    const phoneValue = phoneInput.value.trim();
+                    const ageValue = ageInput.value.trim();
+                    if (!nameValue || !phoneValue || !ageValue) {
+                        return;
+                    }
+
+                    submitButton.disabled = true;
+                    fetch("/api/customers", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            name: nameValue,
+                            phone: phoneValue,
+                            age: Number(ageValue)
+                        })
+                    })
+                        .then((response) => response.json())
+                        .then((data) => {
+                            const option = mapCustomer(data);
+                            select.addOption(option);
+                            select.setValue(option.id, true);
+                            createPanel.classList.remove("is-open");
+                        })
+                        .finally(() => {
+                            submitButton.disabled = false;
+                        });
+                });
+            }
+        }
+
+        function openCreatePanel(select) {
+            ensureCreatePanel(select);
+            if (!createPanel) return;
+            const nameInput = createPanel.querySelector("input[name=\"name\"]");
+            const phoneInput = createPanel.querySelector("input[name=\"phone\"]");
+            const ageInput = createPanel.querySelector("input[name=\"age\"]");
+            if (nameInput instanceof HTMLInputElement) {
+                nameInput.value = lastTypedValue.trim();
+                nameInput.focus();
+            }
+            if (phoneInput instanceof HTMLInputElement) phoneInput.value = "";
+            if (ageInput instanceof HTMLInputElement) ageInput.value = "";
+            createPanel.classList.add("is-open");
+        }
+
+        function loadNextPage(select) {
+            if (isLoading || !hasMore || !currentQuery) return;
+            isLoading = true;
+            fetchCustomers(currentQuery, currentPage)
+                .then((data) => {
+                    hasMore = data.hasMore;
+                    currentPage += 1;
+                    if (data.items.length) {
+                        select.addOptions(data.items);
+                        select.refreshOptions(false);
+                    }
+                })
+                .catch(() => {
+                    errorState = true;
+                })
+                .finally(() => {
+                    isLoading = false;
+                });
         }
 
         const select = new TomSelect(customerSelect, {
@@ -243,13 +392,17 @@ window.BusinessPages.register("pos", function (root) {
             maxItems: 1,
             create: false,
             preload: false,
-            closeAfterSelect: true,
+            closeAfterSelect: false,
             loadThrottle: 280,
-            shouldLoad: (query) => normalizeQuery(query).length >= 2,
+            shouldLoad: () => true,
+            sortField: [{ field: "$order" }],
             render: {
                 option: function (data, escape) {
+                    if (data.id === createOptionId || data.isCreate) {
+                        return renderCreateOption(data, escape);
+                    }
                     const phone = data.phone ? `<div class="customer-meta">${escape(data.phone)}</div>` : "";
-                    const extra = !data.phone && data.email ? `<div class="customer-meta">${escape(data.email)}</div>` : "";
+                    const extra = !data.phone && data.age ? `<div class="customer-meta">Age: ${escape(String(data.age))}</div>` : "";
                     return `
                         <div>
                             <div class="customer-name">${escape(data.name)}</div>
@@ -269,52 +422,75 @@ window.BusinessPages.register("pos", function (root) {
             },
             load: function (query, callback) {
                 const normalized = normalizeQuery(query);
-                if (normalized.length < 2) {
-                    callback();
-                    return;
+                const isNewQuery = normalized !== currentQuery;
+                if (isNewQuery) {
+                    currentQuery = normalized;
+                    currentPage = 0;
+                    hasMore = false;
+                    select.clearOptions();
                 }
 
-                if (cache.has(normalized)) {
-                    callback(cache.get(normalized));
-                    return;
-                }
-
-                if (inflight.has(normalized)) {
-                    inflight.get(normalized).push(callback);
-                    return;
-                }
-
-                inflight.set(normalized, [callback]);
                 errorState = false;
 
-                fetch(`/api/customers/search?q=${encodeURIComponent(normalized)}`)
-                    .then((response) => response.json())
+                if (!normalized) {
+                    callback([buildCreateOption(query)]);
+                    return;
+                }
+
+                isLoading = true;
+                fetchCustomers(normalized, currentPage)
                     .then((data) => {
-                        const options = Array.isArray(data) ? data.map(mapCustomer) : [];
-                        cache.set(normalized, options);
-                        inflight.get(normalized).forEach((cb) => cb(options));
-                        inflight.delete(normalized);
+                        hasMore = data.hasMore;
+                        currentPage += 1;
+                        const options = [buildCreateOption(query), ...data.items];
+                        callback(options);
                     })
                     .catch(() => {
                         errorState = true;
-                        const callbacks = inflight.get(normalized) || [];
-                        callbacks.forEach((cb) => cb());
-                        inflight.delete(normalized);
+                        callback([buildCreateOption(query)]);
+                    })
+                    .finally(() => {
+                        isLoading = false;
                     });
             }
         });
 
-        select.on("change", (value) => {
-            if (!value) {
-                posState.selectedCustomer = null;
+        select.on("type", (value) => {
+            lastTypedValue = value;
+        });
+
+        select.on("dropdown_open", () => {
+            ensureCreatePanel(select);
+            const dropdownContent = select.dropdown_content;
+            if (!dropdownContent || dropdownContent.dataset.scrollBound) return;
+            dropdownContent.dataset.scrollBound = "true";
+            dropdownContent.addEventListener("scroll", () => {
+                const threshold = 24;
+                if (dropdownContent.scrollTop + dropdownContent.clientHeight >= dropdownContent.scrollHeight - threshold) {
+                    loadNextPage(select);
+                }
+            });
+        });
+
+        select.on("item_add", (value) => {
+            if (value === createOptionId) {
+                select.removeItem(value, true);
+                openCreatePanel(select);
+                setTimeout(() => select.open(), 0);
                 return;
             }
+
             const option = select.options[value];
             posState.selectedCustomer = {
                 id: value,
                 name: option?.name || "",
                 phone: option?.phone || ""
             };
+            select.close();
+        });
+
+        select.on("clear", () => {
+            posState.selectedCustomer = null;
         });
     }
 
