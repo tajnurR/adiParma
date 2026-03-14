@@ -1,15 +1,5 @@
 window.BusinessPages.register("pos", function (root) {
-    const products = [
-        { id: 1, name: "Anas test", subtitle: "Anas", price: 200.0, stock: 554 },
-        { id: 2, name: "Docopa 200 Mg", subtitle: "Doxiphylin 200 mg", price: 6.5, stock: 156, rx: true },
-        { id: 3, name: "ALGIN", subtitle: "paracetamol", price: 10.0, stock: 991 },
-        { id: 4, name: "Napa Extend", subtitle: "Paracetamol 665 mg", price: 8.0, stock: 312 },
-        { id: 5, name: "Monas 10", subtitle: "Montelukast 10 mg", price: 12.5, stock: 208, rx: true },
-        { id: 6, name: "Ceevit", subtitle: "Vitamin C 250 mg", price: 3.0, stock: 420 },
-        { id: 7, name: "Seclo 20", subtitle: "Omeprazole 20 mg", price: 7.5, stock: 187, rx: true },
-        { id: 8, name: "Fexo", subtitle: "Fexofenadine 120 mg", price: 15.0, stock: 90 },
-        { id: 9, name: "Azyth 500", subtitle: "Azithromycin 500 mg", price: 18.0, stock: 74, rx: true }
-    ];
+    let products = [];
 
     const cartItems = [];
 
@@ -34,15 +24,13 @@ window.BusinessPages.register("pos", function (root) {
     function renderProducts() {
         productsContainer.innerHTML = products
             .map((product) => {
-                const rxBadge = product.rx ? "<span class=\"pos-rx-badge\">Rx</span>" : "";
                 return `
                 <article class="pos-card" data-id="${product.id}">
                     <div class="pos-card-header">
                         <div>
-                            <div class="pos-card-title">${product.name}</div>
-                            <div class="pos-card-subtitle">${product.subtitle}</div>
+                            <div class="pos-card-title">${product.brandLine}</div>
+                            <div class="pos-card-subtitle">${product.genericLine}</div>
                         </div>
-                        ${rxBadge}
                     </div>
                     <div class="pos-card-footer">
                         <span class="pos-price">${formatMoney(product.price)}</span>
@@ -106,11 +94,10 @@ window.BusinessPages.register("pos", function (root) {
         } else {
             cartItems.push({
                 id: product.id,
-                name: product.name,
-                subtitle: product.subtitle,
+                name: product.brandLine,
+                subtitle: product.genericLine,
                 price: product.price,
-                qty: 1,
-                rx: product.rx
+                qty: 1
             });
         }
         renderCart();
@@ -210,6 +197,74 @@ window.BusinessPages.register("pos", function (root) {
                         '<input type="text" placeholder="Search customer or type name to create new..." aria-label="Search customer" class="pos-customer-fallback" />';
                 }
             });
+    }
+
+    const productSearchInput = root.querySelector(".pos-search-input");
+    let productSearchTimer = null;
+    let productCache = [];
+
+    function mapApiProduct(item) {
+        const medicine = item.medicine || {};
+        const generic = medicine.generic || {};
+        const brandCode = medicine.brandCode || "";
+        const brandName = medicine.brandName || "";
+        const strength = medicine.strength ? ` ${medicine.strength}` : "";
+        const genericCode = generic.genericCode || "";
+        const genericName = generic.genericName || "";
+        return {
+            id: item.id,
+            brandCode,
+            brandName,
+            brandLine: `[${brandCode}] - ${brandName}${strength}`,
+            genericLine: `[${genericCode}] - ${genericName}`,
+            price: Number(item.price || 0),
+            stock: item.qty ?? 0
+        };
+    }
+
+    function fetchProducts() {
+        return fetch("/api/medicine-stock-price-mappings")
+            .then((response) => response.json())
+            .then((data) => Array.isArray(data) ? data.map(mapApiProduct) : []);
+    }
+
+    function filterProducts(query) {
+        const normalized = query.trim().toLowerCase();
+        if (normalized.length < 3) return [];
+        return productCache.filter((product) => {
+            return product.brandCode.toLowerCase().includes(normalized) ||
+                product.brandName.toLowerCase().includes(normalized);
+        });
+    }
+
+    function runProductSearch(query) {
+        fetchProducts()
+            .then((items) => {
+                productCache = items;
+                products = filterProducts(query);
+                renderProducts();
+            })
+            .catch(() => {
+                products = [];
+                renderProducts();
+            });
+    }
+
+    if (productSearchInput) {
+        productSearchInput.addEventListener("input", (event) => {
+            const value = event.target.value || "";
+            if (productSearchTimer) {
+                clearTimeout(productSearchTimer);
+            }
+            productSearchTimer = setTimeout(() => {
+                if (value.trim().length >= 3) {
+                    runProductSearch(value);
+                } else {
+                    products = [];
+                    renderProducts();
+                }
+            }, 250);
+        });
     }
 
     renderProducts();
