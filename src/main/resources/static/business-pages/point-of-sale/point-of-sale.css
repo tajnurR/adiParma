@@ -59,12 +59,14 @@
 
 .pos-products-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(180px, 220px));
     gap: 14px;
     overflow-y: auto;
     min-height: 0;
     flex: 1;
     padding-right: 6px;
+    align-content: start;
+    justify-content: start;
 }
 
 .pos-card {
