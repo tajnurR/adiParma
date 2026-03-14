@@ -42,15 +42,31 @@ window.BusinessPages.register("pos", function (root) {
             .join("");
     }
 
+    function getDiscountedLineTotal(item) {
+        const subtotal = item.price * item.qty;
+        const discountValue = parseFloat(item.discountValue || "0") || 0;
+        let discountAmount = 0;
+        if (item.discountType === "amount") {
+            discountAmount = Math.min(discountValue, Math.max(subtotal - 0.01, 0));
+        } else {
+            const maxPercent = subtotal > 0
+                ? Math.max(((subtotal - 0.01) / subtotal) * 100, 0)
+                : 0;
+            const percent = Math.min(Math.max(discountValue, 0), maxPercent);
+            discountAmount = subtotal * (percent / 100);
+        }
+        return Math.max(subtotal - discountAmount, 0);
+    }
+
     function updateTotals() {
-        const total = cartItems.reduce((sum, item) => sum + item.price * item.qty, 0);
+        const total = cartItems.reduce((sum, item) => sum + getDiscountedLineTotal(item), 0);
         if (totalAmount) totalAmount.textContent = formatMoney(total);
         const cashValue = parseFloat(cashInput?.value || "0") || 0;
         const change = Math.max(cashValue - total, 0);
         if (changeAmount) changeAmount.textContent = formatMoney(change);
     }
 
-    function renderCart() {
+    function renderCart(keepFocusId) {
         if (!cartContainer || !cartHeader) return;
         cartHeader.textContent = `Cart Items (${cartItems.length})`;
 
@@ -62,6 +78,10 @@ window.BusinessPages.register("pos", function (root) {
             cartContainer.innerHTML = cartItems
                 .map((item) => {
                     const rxBadge = item.rx ? "<span class=\"pos-rx-badge\">Rx</span>" : "";
+                    const lineTotal = getDiscountedLineTotal(item);
+                    const discountValue = item.discountValue || "";
+                    const percentActive = item.discountType !== "amount" ? "active" : "";
+                    const amountActive = item.discountType === "amount" ? "active" : "";
                     return `
                         <div class="pos-cart-item" data-id="${item.id}">
                             <div class="pos-cart-info">
@@ -74,12 +94,38 @@ window.BusinessPages.register("pos", function (root) {
                                 <span class="pos-qty-value">${item.qty}</span>
                                 <button class="pos-qty-btn" type="button" data-action="increase">+</button>
                             </div>
-                            <div class="pos-cart-total">${formatMoney(item.price * item.qty)}</div>
+                            <div class="pos-discount-control">
+                                <div class="pos-discount-toggle" role="group" aria-label="Discount type">
+                                    <button type="button" class="pos-discount-btn ${percentActive}" data-action="discount-percent">%</button>
+                                    <button type="button" class="pos-discount-btn ${amountActive}" data-action="discount-amount">৳</button>
+                                </div>
+                                <input
+                                    class="pos-discount-input"
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    inputmode="decimal"
+                                    value="${discountValue}"
+                                    placeholder="0"
+                                    data-action="discount-input"
+                                    aria-label="Item discount"
+                                />
+                            </div>
+                            <div class="pos-cart-total">${formatMoney(lineTotal)}</div>
                             <button class="pos-cart-remove" type="button" data-action="remove">🗑️</button>
                         </div>
                     `;
                 })
                 .join("");
+
+            if (keepFocusId) {
+                const input = cartContainer.querySelector(`.pos-cart-item[data-id="${keepFocusId}"] .pos-discount-input`);
+                if (input instanceof HTMLInputElement) {
+                    const length = input.value.length;
+                    input.focus();
+                    input.setSelectionRange(length, length);
+                }
+            }
         }
 
         updateTotals();
@@ -97,7 +143,9 @@ window.BusinessPages.register("pos", function (root) {
                 name: product.brandLine,
                 subtitle: product.genericLine,
                 price: product.price,
-                qty: 1
+                qty: 1,
+                discountType: "percent",
+                discountValue: ""
             });
         }
         renderCart();
@@ -116,12 +164,14 @@ window.BusinessPages.register("pos", function (root) {
         cartContainer.addEventListener("click", (event) => {
             const target = event.target;
             if (!(target instanceof HTMLElement)) return;
+            if (target.closest(".pos-discount-input")) return;
             const row = target.closest(".pos-cart-item");
             if (!row) return;
             const id = parseInt(row.getAttribute("data-id"), 10);
             const item = cartItems.find((entry) => entry.id === id);
             if (!item) return;
             const action = target.getAttribute("data-action");
+            if (!action) return;
             if (action === "increase") {
                 item.qty += 1;
             }
@@ -136,7 +186,60 @@ window.BusinessPages.register("pos", function (root) {
                 const index = cartItems.findIndex((entry) => entry.id === id);
                 if (index !== -1) cartItems.splice(index, 1);
             }
+            if (action === "discount-percent") {
+                item.discountType = "percent";
+                renderCart(id);
+                return;
+            }
+            if (action === "discount-amount") {
+                item.discountType = "amount";
+                renderCart(id);
+                return;
+            }
             renderCart();
+        });
+
+        cartContainer.addEventListener("input", (event) => {
+            const target = event.target;
+            if (!(target instanceof HTMLInputElement)) return;
+            if (target.getAttribute("data-action") !== "discount-input") return;
+            const row = target.closest(".pos-cart-item");
+            if (!row) return;
+            const id = parseInt(row.getAttribute("data-id"), 10);
+            const item = cartItems.find((entry) => entry.id === id);
+            if (!item) return;
+            const rawValue = target.value;
+            const numericValue = parseFloat(rawValue || "0") || 0;
+            const subtotal = item.price * item.qty;
+            let adjustedValue = numericValue;
+            let validationMessage = "";
+            if (item.discountType === "amount") {
+                const maxAmount = Math.max(subtotal - 0.01, 0);
+                adjustedValue = Math.min(Math.max(numericValue, 0), maxAmount);
+                if (numericValue > maxAmount) {
+                    validationMessage = "Discount amount cannot make total zero or negative.";
+                }
+            } else {
+                const maxPercent = subtotal > 0
+                    ? Math.max(((subtotal - 0.01) / subtotal) * 100, 0)
+                    : 0;
+                adjustedValue = Math.min(Math.max(numericValue, 0), maxPercent);
+                if (numericValue > maxPercent) {
+                    validationMessage = "Discount percent cannot make total zero or negative.";
+                }
+            }
+            if (adjustedValue !== numericValue) {
+                target.value = adjustedValue ? adjustedValue.toFixed(2).replace(/\.00$/, "") : "";
+            }
+            item.discountValue = target.value;
+            const lineTotal = row.querySelector(".pos-cart-total");
+            if (lineTotal) {
+                lineTotal.textContent = formatMoney(getDiscountedLineTotal(item));
+            }
+            updateTotals();
+            if (validationMessage && window.ToastService && typeof window.ToastService.show === "function") {
+                window.ToastService.show(validationMessage, "error");
+            }
         });
     }
 

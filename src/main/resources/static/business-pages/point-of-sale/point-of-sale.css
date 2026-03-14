@@ -417,7 +417,7 @@
     border-radius: 10px;
     padding: 8px 10px;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 70px 80px 70px 26px;
+    grid-template-columns: minmax(0, 1fr) 70px 80px 120px 70px 26px;
     align-items: center;
     gap: 8px;
     background: #ffffff;
@@ -483,6 +483,45 @@
     font-weight: 600;
     color: #2563eb;
     text-align: right;
+}
+
+.pos-discount-control {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: flex-end;
+}
+
+.pos-discount-toggle {
+    display: inline-flex;
+    border: 1px solid #cfd6e0;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.pos-discount-btn {
+    border: none;
+    background: #ffffff;
+    color: #64748b;
+    font-size: 11px;
+    padding: 2px 6px;
+    cursor: pointer;
+}
+
+.pos-discount-btn.active {
+    background: #2563eb;
+    color: #ffffff;
+}
+
+.pos-discount-input {
+    width: 64px;
+    border: 1px solid #cfd6e0;
+    border-radius: 6px;
+    padding: 4px 6px;
+    font-size: 11px;
+    text-align: right;
+    color: #0f172a;
+    background: #ffffff;
 }
 
 .pos-cart-remove {
@@ -643,10 +682,10 @@
     }
 
     .pos-cart-item {
-        grid-template-columns: minmax(0, 1fr) 64px 70px 24px;
+        grid-template-columns: minmax(0, 1fr) 64px 70px 90px 24px;
         grid-template-areas:
             "info price qty remove"
-            "total total total total";
+            "discount discount total total";
         row-gap: 6px;
     }
 
@@ -654,6 +693,7 @@
     .pos-cart-price { grid-area: price; }
     .pos-qty-control { grid-area: qty; }
     .pos-cart-remove { grid-area: remove; }
+    .pos-discount-control { grid-area: discount; align-items: flex-start; }
     .pos-cart-total {
         grid-area: total;
         text-align: left;
