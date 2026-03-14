@@ -18,7 +18,7 @@ window.BusinessPages.register("pos", function (root) {
     if (!productsContainer) return root;
 
     function formatMoney(value) {
-        return `$${value.toFixed(2)}`;
+        return `৳${value.toFixed(2)}`;
     }
 
     function renderProducts() {
