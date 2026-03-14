@@ -18,8 +18,12 @@ public class MedicineStockPriceMappingService {
         this.repository = repository;
     }
 
-    public List<AdiMedicineStockPriceMapping> getMedicineStockDetailsWithLimit() {
-        return repository.findAllWithMedicine(PageRequest.of(0, MAX_RESULTS, Sort.by("id").descending()))
-            .getContent();
+    public List<AdiMedicineStockPriceMapping> getMedicineStockDetailsWithLimit(String query) {
+        String trimmed = query == null ? "" : query.trim();
+        PageRequest pageRequest = PageRequest.of(0, MAX_RESULTS, Sort.by("id").descending());
+        if (trimmed.isEmpty()) {
+            return repository.findAllWithMedicine(pageRequest).getContent();
+        }
+        return repository.searchByBrandCodeOrName(trimmed, pageRequest).getContent();
     }
 }

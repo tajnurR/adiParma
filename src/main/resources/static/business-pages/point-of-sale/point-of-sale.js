@@ -201,7 +201,6 @@ window.BusinessPages.register("pos", function (root) {
 
     const productSearchInput = root.querySelector(".pos-search-input");
     let productSearchTimer = null;
-    let productCache = [];
 
     function mapApiProduct(item) {
         const medicine = item.medicine || {};
@@ -222,26 +221,17 @@ window.BusinessPages.register("pos", function (root) {
         };
     }
 
-    function fetchProducts() {
-        return fetch("/api/medicine-stock-price-mappings")
+    function fetchProducts(query) {
+        const url = `/api/medicine-stock-price-mappings?q=${encodeURIComponent(query)}`;
+        return fetch(url)
             .then((response) => response.json())
             .then((data) => Array.isArray(data) ? data.map(mapApiProduct) : []);
     }
 
-    function filterProducts(query) {
-        const normalized = query.trim().toLowerCase();
-        if (normalized.length < 3) return [];
-        return productCache.filter((product) => {
-            return product.brandCode.toLowerCase().includes(normalized) ||
-                product.brandName.toLowerCase().includes(normalized);
-        });
-    }
-
     function runProductSearch(query) {
-        fetchProducts()
+        fetchProducts(query)
             .then((items) => {
-                productCache = items;
-                products = filterProducts(query);
+                products = items;
                 renderProducts();
             })
             .catch(() => {

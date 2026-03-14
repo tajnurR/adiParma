@@ -5,6 +5,7 @@ import com.adipharma.entity.AdiMedicineStockPriceMapping;
 import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -18,7 +19,9 @@ public class MedicineStockPriceMappingApiController {
     }
 
     @GetMapping("medicine-stock-price-mappings")
-    public List<AdiMedicineStockPriceMapping> getMedicineStockDetailsWithLimit() {
-        return service.getMedicineStockDetailsWithLimit();
+    public List<AdiMedicineStockPriceMapping> getMedicineStockDetailsWithLimit(
+        @RequestParam(name = "q", required = false, defaultValue = "") String query
+    ) {
+        return service.getMedicineStockDetailsWithLimit(query);
     }
 }
