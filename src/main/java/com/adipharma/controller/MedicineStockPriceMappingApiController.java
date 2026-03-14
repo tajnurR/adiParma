@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/medicine-stock-price-mappings")
+@RequestMapping("/api/")
 public class MedicineStockPriceMappingApiController {
 
     private final MedicineStockPriceMappingService service;
@@ -17,8 +17,8 @@ public class MedicineStockPriceMappingApiController {
         this.service = service;
     }
 
-    @GetMapping
-    public List<AdiMedicineStockPriceMapping> listTop50() {
-        return service.listTop50();
+    @GetMapping("medicine-stock-price-mappings")
+    public List<AdiMedicineStockPriceMapping> getMedicineStockDetailsWithLimit() {
+        return service.getMedicineStockDetailsWithLimit();
     }
 }

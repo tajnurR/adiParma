@@ -18,7 +18,7 @@ public class MedicineStockPriceMappingService {
         this.repository = repository;
     }
 
-    public List<AdiMedicineStockPriceMapping> listTop50() {
+    public List<AdiMedicineStockPriceMapping> getMedicineStockDetailsWithLimit() {
         return repository.findAllWithMedicine(PageRequest.of(0, MAX_RESULTS, Sort.by("id").descending()))
             .getContent();
     }
