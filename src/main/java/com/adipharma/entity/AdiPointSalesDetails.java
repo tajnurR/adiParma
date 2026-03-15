@@ -46,6 +46,12 @@ public class AdiPointSalesDetails {
     @Column(name = "total_price", nullable = false, precision = 12, scale = 2)
     private BigDecimal totalPrice;
 
+    @Column(name = "discount", precision = 10, scale = 2)
+    private BigDecimal discount;
+
+    @Column(name = "discount_type", length = 20)
+    private String discountType;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(
         name = "sales_master_id",

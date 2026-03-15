@@ -2,7 +2,6 @@ package com.adipharma.entity;
 
 import jakarta.persistence.*;
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -29,11 +28,17 @@ public class AdiPointSalesMaster {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "payment_type", length = 50)
-    private String paymentType;
+    @Column(name = "invoice_no", nullable = false, unique = true, length = 30)
+    private String invoiceNo;
 
-    @Column(name = "cash_received")
-    private Integer cashReceived;
+    @Column(name = "payment_type", nullable = false)
+    private Integer paymentType;
+
+    @Column(name = "cash_received", precision = 12, scale = 2)
+    private BigDecimal cashReceived;
+
+    @Column(name = "change_amount", precision = 12, scale = 2)
+    private BigDecimal changeAmount;
 
     @Column(name = "total_amount", nullable = false, precision = 12, scale = 2)
     private BigDecimal totalAmount;
@@ -51,7 +56,7 @@ public class AdiPointSalesMaster {
     private AdiCustomar customer;
 
     @Column(name = "sale_date")
-    private LocalDate saleDate;
+    private LocalDateTime saleDate;
 
     @Column(name = "created_by", length = 100)
     private String createdBy;

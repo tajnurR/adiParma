@@ -12,8 +12,16 @@ window.BusinessPages.register("pos", function (root) {
     const changeAmount = root.querySelector(".pos-change-amount");
     const cashInput = root.querySelector(".pos-cash-input");
     const customerSelect = root.querySelector("#pos-customer-select");
+    const completeButton = root.querySelector(".pos-complete");
     const posState = { selectedCustomer: null };
     root.posState = posState;
+
+    const paymentCodeMap = {
+        cash: 1,
+        card: 2,
+        mobile: 3,
+        other: 4
+    };
 
     if (!productsContainer) return root;
 
@@ -264,7 +272,7 @@ window.BusinessPages.register("pos", function (root) {
             if (!cashInput) return;
             const value = button.textContent.trim();
             if (value.toLowerCase() === "exact") {
-                const total = cartItems.reduce((sum, item) => sum + item.price * item.qty, 0);
+                const total = cartItems.reduce((sum, item) => sum + getDiscountedLineTotal(item), 0);
                 cashInput.value = total.toFixed(2);
             } else {
                 cashInput.value = parseFloat(value).toFixed(2);
@@ -362,6 +370,98 @@ window.BusinessPages.register("pos", function (root) {
 
     renderProducts();
     renderCart();
+
+    function getSelectedPaymentCode() {
+        const activeButton = root.querySelector(".pos-payment-btn.active");
+        if (!activeButton) return null;
+        const key = activeButton.getAttribute("data-payment");
+        return paymentCodeMap[key] || null;
+    }
+
+    function buildSalePayload() {
+        if (!posState.selectedCustomer || !posState.selectedCustomer.id) {
+            if (window.ToastService && typeof window.ToastService.show === "function") {
+                window.ToastService.show("Please select a customer before completing the sale.", "error");
+            }
+            return null;
+        }
+        if (cartItems.length === 0) {
+            if (window.ToastService && typeof window.ToastService.show === "function") {
+                window.ToastService.show("Please add at least one item to the cart.", "error");
+            }
+            return null;
+        }
+        const paymentType = getSelectedPaymentCode();
+        if (!paymentType) {
+            if (window.ToastService && typeof window.ToastService.show === "function") {
+                window.ToastService.show("Please select a payment method.", "error");
+            }
+            return null;
+        }
+
+        const items = cartItems.map((item) => {
+            const discountValue = parseFloat(item.discountValue || "0") || 0;
+            const discountType = item.discountType === "amount" ? "BDT" : "PERCENT";
+            const lineTotal = getDiscountedLineTotal(item);
+            return {
+                id: item.id,
+                qty: item.qty,
+                discount: Number(discountValue.toFixed(2)),
+                discountType,
+                totalPrice: Number(lineTotal.toFixed(2))
+            };
+        });
+
+        const total = items.reduce((sum, item) => sum + item.totalPrice, 0);
+        const cashReceived = parseFloat(cashInput?.value || "0") || 0;
+        const change = Math.max(cashReceived - total, 0);
+
+        return {
+            customerId: Number(posState.selectedCustomer.id),
+            paymentType,
+            cashReceived: Number(cashReceived.toFixed(2)),
+            changeAmount: Number(change.toFixed(2)),
+            totalAmount: Number(total.toFixed(2)),
+            items
+        };
+    }
+
+    if (completeButton) {
+        completeButton.addEventListener("click", () => {
+            const payload = buildSalePayload();
+            if (!payload) return;
+            completeButton.disabled = true;
+            fetch("/api/point-sales", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            })
+                .then((response) => response.json().then((data) => ({ ok: response.ok, data })))
+                .then(({ ok, data }) => {
+                    if (!ok) {
+                        throw new Error(data?.message || "Failed to complete the sale.");
+                    }
+                    if (window.ToastService && typeof window.ToastService.show === "function") {
+                        const message = data?.invoiceNo
+                            ? `Sale saved. Invoice ${data.invoiceNo}`
+                            : "Sale saved successfully.";
+                        window.ToastService.show(message, "success");
+                    }
+                    cartItems.splice(0, cartItems.length);
+                    renderCart();
+                    if (cashInput) cashInput.value = "0.00";
+                    updateTotals();
+                })
+                .catch((error) => {
+                    if (window.ToastService && typeof window.ToastService.show === "function") {
+                        window.ToastService.show(error.message || "Failed to complete the sale.", "error");
+                    }
+                })
+                .finally(() => {
+                    completeButton.disabled = false;
+                });
+        });
+    }
 
     return root;
 });
