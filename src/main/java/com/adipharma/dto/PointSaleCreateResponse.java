@@ -9,7 +9,9 @@ public class PointSaleCreateResponse {
     public Long id;
     public String invoiceNo;
     public Integer customerId;
+    public String customerName;
     public Integer paymentType;
+    public String processedBy;
     public BigDecimal cashReceived;
     public BigDecimal changeAmount;
     public BigDecimal totalAmount;
@@ -19,6 +21,9 @@ public class PointSaleCreateResponse {
     public static class Item {
         public Long id;
         public Long medicineStockId;
+        public String medicineName;
+        public String medicineCode;
+        public BigDecimal unitPrice;
         public Integer qty;
         public BigDecimal totalPrice;
         public BigDecimal discount;

@@ -662,6 +662,256 @@
     cursor: pointer;
 }
 
+body.pos-modal-open {
+    overflow: hidden;
+}
+
+.pos-invoice-modal {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.pos-invoice-modal.is-open {
+    display: flex;
+}
+
+.pos-invoice-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.5);
+}
+
+.pos-invoice-card {
+    position: relative;
+    background: #ffffff;
+    border-radius: 16px;
+    width: min(920px, 92vw);
+    max-height: 88vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    padding: 20px 24px;
+    box-shadow: 0 18px 48px rgba(15, 23, 42, 0.2);
+    z-index: 1;
+}
+
+.pos-invoice-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.pos-invoice-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #0f172a;
+    letter-spacing: 0.12em;
+}
+
+.pos-invoice-company {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 12px;
+    color: #475569;
+}
+
+.pos-invoice-company-short {
+    font-weight: 700;
+    color: #1d4ed8;
+    font-size: 13px;
+}
+
+.pos-invoice-company-name {
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.pos-invoice-company-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.pos-invoice-close {
+    border: none;
+    background: #f1f5f9;
+    color: #475569;
+    border-radius: 8px;
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.pos-invoice-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.pos-invoice-actions.bottom {
+    justify-content: flex-end;
+}
+
+.pos-invoice-btn {
+    border: none;
+    border-radius: 10px;
+    background: #1d4ed8;
+    color: #ffffff;
+    padding: 8px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.pos-invoice-btn.secondary {
+    background: #e2e8f0;
+    color: #1f2937;
+}
+
+.pos-invoice-summary {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+    gap: 18px;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 12px 14px;
+    background: #f8fafc;
+}
+
+.pos-invoice-summary-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #6b7280;
+}
+
+.pos-invoice-summary-value {
+    margin-top: 4px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.pos-invoice-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px 16px;
+}
+
+.pos-invoice-table-wrapper {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: auto;
+    max-height: 36vh;
+}
+
+.pos-invoice-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+
+.pos-invoice-table thead {
+    background: #f1f5f9;
+}
+
+.pos-invoice-table th,
+.pos-invoice-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #e2e8f0;
+    text-align: left;
+}
+
+.pos-invoice-table th:last-child,
+.pos-invoice-table td:last-child {
+    text-align: right;
+}
+
+.pos-invoice-table th:nth-child(2),
+.pos-invoice-table td:nth-child(2),
+.pos-invoice-table th:nth-child(3),
+.pos-invoice-table td:nth-child(3),
+.pos-invoice-table th:nth-child(4),
+.pos-invoice-table td:nth-child(4) {
+    text-align: center;
+}
+
+.pos-invoice-item-name {
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.pos-invoice-item-code {
+    font-size: 11px;
+    color: #6b7280;
+    margin-top: 2px;
+}
+
+.pos-invoice-total {
+    display: flex;
+    justify-content: flex-end;
+    gap: 16px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.pos-invoice-footer {
+    font-size: 12px;
+    color: #6b7280;
+    text-align: center;
+    border-top: 1px dashed #e2e8f0;
+    padding-top: 12px;
+}
+
+@media (max-width: 720px) {
+    .pos-invoice-summary {
+        grid-template-columns: 1fr;
+    }
+
+    .pos-invoice-summary-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .pos-invoice-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
+
+@media print {
+    body.pos-printing {
+        background: #ffffff;
+    }
+
+    body.pos-printing .pos-layout,
+    body.pos-printing .pos-invoice-backdrop,
+    body.pos-printing .pos-invoice-actions,
+    body.pos-printing .pos-invoice-close {
+        display: none;
+    }
+
+    body.pos-printing .pos-invoice-modal {
+        position: static;
+        display: block;
+    }
+
+    body.pos-printing .pos-invoice-card {
+        box-shadow: none;
+        width: 100%;
+        max-height: none;
+        padding: 0;
+    }
+}
+
 @media (max-width: 1024px) {
     .pos-layout {
         grid-template-columns: 1fr;

@@ -4,6 +4,7 @@ import com.adipharma.common.enums.PaymentMethod;
 import com.adipharma.dto.PointSaleCreateRequest;
 import com.adipharma.dto.PointSaleCreateResponse;
 import com.adipharma.entity.AdiCustomar;
+import com.adipharma.entity.AdiMedicineDetails;
 import com.adipharma.entity.AdiMedicineStockPriceMapping;
 import com.adipharma.entity.AdiPointSalesDetails;
 import com.adipharma.entity.AdiPointSalesMaster;
@@ -193,7 +194,9 @@ public class PointSalesService {
         response.id = master.getId();
         response.invoiceNo = master.getInvoiceNo();
         response.customerId = master.getCustomer() != null ? master.getCustomer().getId() : null;
+        response.customerName = master.getCustomer() != null ? master.getCustomer().getName() : null;
         response.paymentType = master.getPaymentType();
+        response.processedBy = master.getCreatedBy();
         response.cashReceived = master.getCashReceived();
         response.changeAmount = master.getChangeAmount();
         response.totalAmount = master.getTotalAmount();
@@ -204,6 +207,11 @@ public class PointSalesService {
                 PointSaleCreateResponse.Item item = new PointSaleCreateResponse.Item();
                 item.id = detail.getId();
                 item.medicineStockId = detail.getMedicineStock() != null ? detail.getMedicineStock().getId() : null;
+                AdiMedicineStockPriceMapping stock = detail.getMedicineStock();
+                AdiMedicineDetails medicine = stock != null ? stock.getMedicine() : null;
+                item.medicineName = buildMedicineName(medicine);
+                item.medicineCode = medicine != null ? medicine.getBrandCode() : null;
+                item.unitPrice = stock != null ? stock.getPrice() : null;
                 item.qty = detail.getSalesQty();
                 item.totalPrice = detail.getTotalPrice();
                 item.discount = detail.getDiscount();
@@ -213,5 +221,17 @@ public class PointSalesService {
             .toList();
         response.items = items;
         return response;
+    }
+
+    private String buildMedicineName(AdiMedicineDetails medicine) {
+        if (medicine == null) {
+            return null;
+        }
+        String name = medicine.getBrandName() == null ? "" : medicine.getBrandName().trim();
+        String strength = medicine.getStrength() == null ? "" : medicine.getStrength().trim();
+        if (!strength.isEmpty()) {
+            return name.isEmpty() ? strength : name + " " + strength;
+        }
+        return name.isEmpty() ? null : name;
     }
 }

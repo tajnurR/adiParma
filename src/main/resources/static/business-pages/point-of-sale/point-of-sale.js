@@ -13,6 +13,14 @@ window.BusinessPages.register("pos", function (root) {
     const cashInput = root.querySelector(".pos-cash-input");
     const customerSelect = root.querySelector("#pos-customer-select");
     const completeButton = root.querySelector(".pos-complete");
+    const invoiceModal = root.querySelector("#pos-invoice-modal");
+    const invoiceItemsBody = root.querySelector("[data-field=\"invoice-items\"]");
+    const invoiceNoEl = root.querySelector("[data-field=\"invoice-no\"]");
+    const invoiceDateEl = root.querySelector("[data-field=\"invoice-date\"]");
+    const invoicePaymentEl = root.querySelector("[data-field=\"payment-method\"]");
+    const invoiceProcessedEl = root.querySelector("[data-field=\"processed-by\"]");
+    const invoiceBillToEl = root.querySelector("[data-field=\"bill-to\"]");
+    const invoiceTotalEl = root.querySelector("[data-field=\"invoice-total\"]");
     const posState = { selectedCustomer: null };
     root.posState = posState;
 
@@ -27,6 +35,24 @@ window.BusinessPages.register("pos", function (root) {
 
     function formatMoney(value) {
         return `৳${value.toFixed(2)}`;
+    }
+
+    function formatMoneyValue(value) {
+        const numeric = Number(value || 0);
+        return `৳${numeric.toFixed(2)}`;
+    }
+
+    function formatInvoiceDate(value) {
+        if (!value) return "—";
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return value;
+        return date.toLocaleString("en-GB", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit"
+        });
     }
 
     function renderProducts() {
@@ -378,6 +404,14 @@ window.BusinessPages.register("pos", function (root) {
         return paymentCodeMap[key] || null;
     }
 
+    function getPaymentLabel(code) {
+        if (code === 1) return "Cash";
+        if (code === 2) return "Card";
+        if (code === 3) return "Mobile";
+        if (code === 4) return "Other";
+        return "—";
+    }
+
     function buildSalePayload() {
         if (!posState.selectedCustomer || !posState.selectedCustomer.id) {
             if (window.ToastService && typeof window.ToastService.show === "function") {
@@ -426,6 +460,86 @@ window.BusinessPages.register("pos", function (root) {
         };
     }
 
+    function closeInvoiceModal() {
+        if (!invoiceModal) return;
+        invoiceModal.classList.remove("is-open");
+        invoiceModal.setAttribute("aria-hidden", "true");
+        document.body.classList.remove("pos-modal-open");
+    }
+
+    function openInvoiceModal(data) {
+        if (!invoiceModal || !data) return;
+        if (invoiceNoEl) invoiceNoEl.textContent = data.invoiceNo || "—";
+        if (invoiceDateEl) invoiceDateEl.textContent = formatInvoiceDate(data.saleDate);
+        if (invoicePaymentEl) invoicePaymentEl.textContent = getPaymentLabel(data.paymentType);
+        if (invoiceProcessedEl) invoiceProcessedEl.textContent = data.processedBy || "—";
+        if (invoiceBillToEl) {
+            invoiceBillToEl.textContent = data.customerName || "Walk-in Customer";
+        }
+        if (invoiceTotalEl) invoiceTotalEl.textContent = formatMoneyValue(data.totalAmount);
+
+        if (invoiceItemsBody) {
+            const items = Array.isArray(data.items) ? data.items : [];
+            invoiceItemsBody.innerHTML = items.map((item) => {
+                const name = item.medicineName || "Item";
+                const code = item.medicineCode ? `Code: ${item.medicineCode}` : "";
+                const qty = Number(item.qty || 0);
+                const unitPrice = formatMoneyValue(item.unitPrice);
+                let discountLabel = "-";
+                const discountValue = Number(item.discount || 0);
+                if (discountValue > 0) {
+                    if (String(item.discountType).toUpperCase() === "PERCENT") {
+                        discountLabel = `${discountValue.toFixed(2).replace(/\.00$/, "")}%`;
+                    } else {
+                        discountLabel = formatMoneyValue(discountValue);
+                    }
+                }
+                const amount = formatMoneyValue(item.totalPrice);
+                return `
+                    <tr>
+                        <td>
+                            <div class="pos-invoice-item-name">${name}</div>
+                            ${code ? `<div class="pos-invoice-item-code">${code}</div>` : ""}
+                        </td>
+                        <td>${qty}</td>
+                        <td>${unitPrice}</td>
+                        <td>${discountLabel}</td>
+                        <td>${amount}</td>
+                    </tr>
+                `;
+            }).join("");
+        }
+
+        invoiceModal.classList.add("is-open");
+        invoiceModal.setAttribute("aria-hidden", "false");
+        document.body.classList.add("pos-modal-open");
+    }
+
+    function printInvoice() {
+        document.body.classList.add("pos-printing");
+        window.print();
+        setTimeout(() => {
+            document.body.classList.remove("pos-printing");
+        }, 100);
+    }
+
+    if (invoiceModal) {
+        invoiceModal.addEventListener("click", (event) => {
+            const target = event.target;
+            if (!(target instanceof HTMLElement)) return;
+            const action = target.getAttribute("data-action");
+            if (action === "close-invoice") {
+                closeInvoiceModal();
+            }
+            if (action === "print-invoice") {
+                printInvoice();
+            }
+            if (action === "thermal-print") {
+                printInvoice();
+            }
+        });
+    }
+
     if (completeButton) {
         completeButton.addEventListener("click", () => {
             const payload = buildSalePayload();
@@ -447,6 +561,7 @@ window.BusinessPages.register("pos", function (root) {
                             : "Sale saved successfully.";
                         window.ToastService.show(message, "success");
                     }
+                    openInvoiceModal(data);
                     cartItems.splice(0, cartItems.length);
                     renderCart();
                     if (cashInput) cashInput.value = "0.00";
