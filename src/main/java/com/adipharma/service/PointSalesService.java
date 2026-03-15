@@ -28,7 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class PointSalesService {
 
-    private static final DateTimeFormatter INVOICE_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy/MM/dd");
+    private static final DateTimeFormatter INVOICE_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd");
     private static final int INVOICE_SEQUENCE_WIDTH = 5;
 
     private final Object invoiceLock = new Object();
@@ -153,7 +153,7 @@ public class PointSalesService {
     private String generateInvoiceNo() {
         LocalDate today = LocalDate.now();
         String datePart = today.format(INVOICE_DATE_FORMAT);
-        String prefix = "I-" + datePart + "-";
+        String prefix = "I" + datePart + "-";
         Optional<AdiPointSalesMaster> latest = masterRepository
             .findTopByInvoiceNoStartingWithOrderByInvoiceNoDesc(prefix);
         int nextSequence = 1;
