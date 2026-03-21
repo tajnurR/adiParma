@@ -518,192 +518,58 @@ window.BusinessPages.register("pos", function (root) {
     }
 
     function printInvoice() {
-        document.body.classList.add("pos-printing");
-        window.print();
-        setTimeout(() => {
-            document.body.classList.remove("pos-printing");
-        }, 100);
+        if (!lastSaleResponse || !lastSaleResponse.id) {
+            if (window.ToastService && typeof window.ToastService.show === "function") {
+                window.ToastService.show("No invoice available for PDF generation.", "error");
+            }
+            return;
+        }
+        const invoiceId = lastSaleResponse.id;
+        const pdfWindow = window.open("", "_blank");
+        if (!pdfWindow) {
+            if (window.ToastService && typeof window.ToastService.show === "function") {
+                window.ToastService.show("Please allow pop-ups to preview the PDF invoice.", "error");
+            }
+            return;
+        }
+        fetch(`/api/invoices/${invoiceId}/pdf`)
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error("Failed to generate invoice PDF.");
+                }
+                return response.blob();
+            })
+            .then((blob) => {
+                const blobUrl = URL.createObjectURL(blob);
+                pdfWindow.location = blobUrl;
+                setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
+            })
+            .catch((error) => {
+                pdfWindow.close();
+                if (window.ToastService && typeof window.ToastService.show === "function") {
+                    window.ToastService.show(error.message || "Failed to generate invoice PDF.", "error");
+                }
+            });
     }
 
     function thermalPrint() {
-        if (!lastSaleResponse) {
+        if (!lastSaleResponse || !lastSaleResponse.id) {
             if (window.ToastService && typeof window.ToastService.show === "function") {
                 window.ToastService.show("No sale data available for thermal print.", "error");
             }
             return;
         }
-
-        const data = lastSaleResponse;
-        const items = Array.isArray(data.items) ? data.items : [];
         const receiptWidth = 360;
         const receiptHeight = 640;
+        const url = `/invoices/${lastSaleResponse.id}/thermal`;
         const win = window.open(
-            "",
+            url,
             "thermal-receipt",
             `width=${receiptWidth},height=${receiptHeight},menubar=no,toolbar=no,location=no,status=no`
         );
-        if (!win) return;
-
-        const companyShort = "AdiPharma";
-        const companyName = "AdiPharma Pharmacy";
-        const companyPhone = "—";
-        const companyEmail = "—";
-        const customerName = data.customerName || "Walk-in Customer";
-        const processedBy = data.processedBy || "—";
-        const paymentLabel = getPaymentLabel(data.paymentType);
-        const invoiceDate = formatInvoiceDate(data.saleDate);
-
-        const itemRows = items.map((item) => {
-            const name = item.medicineName || "Item";
-            const qty = Number(item.qty || 0);
-            const amount = formatMoneyValue(item.totalPrice);
-            return `
-                <tr>
-                    <td class="col-item">${name}</td>
-                    <td class="col-qty">${qty}</td>
-                    <td class="col-price">${amount}</td>
-                </tr>
-            `;
-        }).join("");
-
-        win.document.open();
-        win.document.write(`
-            <!DOCTYPE html>
-            <html lang="en">
-            <head>
-                <meta charset="UTF-8" />
-                <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-                <title>Thermal Receipt</title>
-                <style>
-                    * { box-sizing: border-box; }
-                    body {
-                        margin: 0;
-                        padding: 16px 12px;
-                        font-family: "Courier New", Courier, monospace;
-                        font-size: 12px;
-                        color: #111827;
-                        background: #ffffff;
-                    }
-                    .receipt {
-                        max-width: 320px;
-                        margin: 0 auto;
-                        text-align: center;
-                    }
-                    .company-short {
-                        font-weight: 700;
-                        font-size: 14px;
-                    }
-                    .company-name {
-                        font-weight: 600;
-                        margin-top: 4px;
-                    }
-                    .company-meta {
-                        margin-top: 4px;
-                        line-height: 1.4;
-                    }
-                    .separator {
-                        border-top: 1px dashed #9ca3af;
-                        margin: 10px 0;
-                    }
-                    .title {
-                        font-weight: 700;
-                        letter-spacing: 0.12em;
-                        margin: 8px 0;
-                    }
-                    .meta {
-                        text-align: left;
-                        line-height: 1.6;
-                    }
-                    .meta span {
-                        display: block;
-                    }
-                    table {
-                        width: 100%;
-                        border-collapse: collapse;
-                        margin-top: 8px;
-                        font-size: 12px;
-                        text-align: left;
-                    }
-                    th, td {
-                        padding: 4px 0;
-                        vertical-align: top;
-                    }
-                    th {
-                        border-bottom: 1px dashed #9ca3af;
-                        font-weight: 700;
-                    }
-                    td.col-qty, th.col-qty { width: 44px; text-align: center; }
-                    td.col-price, th.col-price { width: 70px; text-align: right; }
-                    .total-row {
-                        display: flex;
-                        justify-content: space-between;
-                        font-weight: 700;
-                        margin-top: 8px;
-                    }
-                    .footer {
-                        margin-top: 12px;
-                        font-size: 11px;
-                        line-height: 1.5;
-                    }
-                    @media print {
-                        body { padding: 0; }
-                    }
-                </style>
-            </head>
-            <body>
-                <div class="receipt">
-                    <div class="company-short">${companyShort}</div>
-                    <div class="company-name">${companyName}</div>
-                    <div class="company-meta">
-                        <div>Phone: ${companyPhone}</div>
-                        <div>Email: ${companyEmail}</div>
-                    </div>
-                    <div class="separator"></div>
-                    <div class="title">SALES RECEIPT</div>
-                    <div class="separator"></div>
-                    <div class="meta">
-                        <span>Invoice #: ${data.invoiceNo || "—"}</span>
-                        <span>Date: ${invoiceDate}</span>
-                        <span>Customer: ${customerName}</span>
-                        <span>Cashier: ${processedBy}</span>
-                    </div>
-                    <div class="separator"></div>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th class="col-item">Item</th>
-                                <th class="col-qty">Qty</th>
-                                <th class="col-price">Price</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${itemRows}
-                        </tbody>
-                    </table>
-                    <div class="separator"></div>
-                    <div class="total-row">
-                        <span>TOTAL</span>
-                        <span>${formatMoneyValue(data.totalAmount)}</span>
-                    </div>
-                    <div class="meta" style="margin-top: 6px;">
-                        <span>Payment: ${paymentLabel}</span>
-                    </div>
-                    <div class="separator"></div>
-                    <div class="footer">
-                        Thank you for shopping with us.<br/>
-                        Please keep this receipt for your records.
-                    </div>
-                </div>
-                <script>
-                    window.addEventListener("load", () => {
-                        window.print();
-                    });
-                </script>
-            </body>
-            </html>
-        `);
-        win.document.close();
-        win.focus();
+        if (!win && window.ToastService && typeof window.ToastService.show === "function") {
+            window.ToastService.show("Please allow pop-ups to print the thermal receipt.", "error");
+        }
     }
 
     if (invoiceModal) {

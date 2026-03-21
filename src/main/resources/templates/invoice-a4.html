@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>Invoice</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 18mm;
+        }
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0;
+            font-family: "Helvetica", "Arial", sans-serif;
+            font-size: 12px;
+            color: #111827;
+        }
+        .invoice {
+            width: 100%;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 18px;
+        }
+        .pharmacy-name {
+            font-size: 18px;
+            font-weight: 700;
+        }
+        .pharmacy-meta {
+            margin-top: 4px;
+            line-height: 1.4;
+            color: #4b5563;
+        }
+        .title {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            color: #1f2937;
+        }
+        .divider {
+            border-top: 1px solid #e5e7eb;
+            margin: 14px 0;
+        }
+        .meta {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 24px;
+            margin-bottom: 18px;
+        }
+        .label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #6b7280;
+        }
+        .value {
+            margin-top: 4px;
+            font-weight: 600;
+            color: #111827;
+        }
+        .meta-details {
+            display: grid;
+            gap: 6px;
+        }
+        .meta-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            font-size: 12px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        thead th {
+            text-align: left;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: #6b7280;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 8px 6px;
+        }
+        tbody td {
+            padding: 10px 6px;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: top;
+        }
+        .right {
+            text-align: right;
+        }
+        .center {
+            text-align: center;
+        }
+        .item-name {
+            font-weight: 600;
+        }
+        .item-code {
+            font-size: 10px;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+        .totals {
+            margin-top: 18px;
+            display: flex;
+            justify-content: flex-end;
+        }
+        .totals-box {
+            min-width: 240px;
+            border: 1px solid #e5e7eb;
+            padding: 12px 14px;
+        }
+        .totals-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            font-size: 12px;
+        }
+        .totals-row.grand {
+            font-size: 14px;
+            font-weight: 700;
+            margin-top: 10px;
+        }
+        .footer {
+            margin-top: 24px;
+            text-align: center;
+            font-size: 11px;
+            color: #6b7280;
+        }
+    </style>
+</head>
+<body>
+<div class="invoice">
+    <div class="header">
+        <div>
+            <div class="pharmacy-name" th:text="${invoice.pharmacyName}">AdiPharma Pharmacy</div>
+            <div class="pharmacy-meta" th:if="${invoice.pharmacyAddress}" th:text="${invoice.pharmacyAddress}">
+                Pharmacy Address
+            </div>
+            <div class="pharmacy-meta">
+                <div th:if="${invoice.pharmacyPhone}" th:text="'Phone: ' + ${invoice.pharmacyPhone}">Phone</div>
+                <div th:if="${invoice.pharmacyEmail}" th:text="'Email: ' + ${invoice.pharmacyEmail}">Email</div>
+            </div>
+        </div>
+        <div class="title">INVOICE</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="meta">
+        <div>
+            <div class="label">Bill To</div>
+            <div class="value" th:text="${invoice.billToName}">Walk-in Customer</div>
+            <div class="value" th:if="${invoice.billToContact}" th:text="${invoice.billToContact}">Contact</div>
+            <div class="value" th:if="${invoice.billToAddress}" th:text="${invoice.billToAddress}">Address</div>
+        </div>
+        <div class="meta-details">
+            <div class="meta-row">
+                <span>Invoice #</span>
+                <span th:text="${invoice.invoiceNo}">INV</span>
+            </div>
+            <div class="meta-row">
+                <span>Date</span>
+                <span th:text="${invoice.invoiceDate}">01 Jan 2026</span>
+            </div>
+            <div class="meta-row">
+                <span>Payment</span>
+                <span th:text="${invoice.paymentMethod}">Cash</span>
+            </div>
+            <div class="meta-row">
+                <span>Processed by</span>
+                <span th:text="${invoice.processedBy}">—</span>
+            </div>
+        </div>
+    </div>
+
+    <table>
+        <thead>
+        <tr>
+            <th>Item</th>
+            <th class="center">Qty</th>
+            <th class="right">Unit Price</th>
+            <th class="right">Discount</th>
+            <th class="right">Amount</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="item : ${invoice.items}">
+            <td>
+                <div class="item-name" th:text="${item.name}">Item</div>
+                <div class="item-code" th:if="${item.code}" th:text="${item.code}">Code</div>
+            </td>
+            <td class="center" th:text="${item.qty}">1</td>
+            <td class="right" th:text="${item.unitPrice}">৳0.00</td>
+            <td class="right" th:text="${item.discount}">—</td>
+            <td class="right" th:text="${item.total}">৳0.00</td>
+        </tr>
+        </tbody>
+    </table>
+
+    <div class="totals">
+        <div class="totals-box">
+            <div class="totals-row">
+                <span>Subtotal</span>
+                <span th:text="${invoice.subtotal}">৳0.00</span>
+            </div>
+            <div class="totals-row">
+                <span>Discount</span>
+                <span th:text="${invoice.discountTotal}">৳0.00</span>
+            </div>
+            <div class="totals-row grand">
+                <span>Grand Total</span>
+                <span th:text="${invoice.grandTotal}">৳0.00</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer" th:text="${invoice.footerNote}">
+        Thank you for choosing AdiPharma Pharmacy. Please keep this invoice for your records.
+    </div>
+</div>
+</body>
+</html>
