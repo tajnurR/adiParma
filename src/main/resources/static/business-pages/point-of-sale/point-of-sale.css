@@ -888,8 +888,26 @@ body.pos-modal-open {
 }
 
 @media print {
+    @page {
+        size: 80mm auto;
+        margin: 0;
+    }
+
+    * {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
     body.pos-printing {
         background: #ffffff;
+        margin: 0;
+        padding: 0;
+    }
+
+    body.pos-printing,
+    body.pos-printing .pos-invoice-modal,
+    body.pos-printing .pos-invoice-card {
+        width: 80mm;
     }
 
     body.pos-printing .pos-layout,
@@ -906,9 +924,140 @@ body.pos-modal-open {
 
     body.pos-printing .pos-invoice-card {
         box-shadow: none;
-        width: 100%;
+        width: 80mm;
         max-height: none;
-        padding: 0;
+        padding: 6mm 4mm 8mm;
+        border-radius: 0;
+        margin: 0;
+        gap: 10px;
+        font-family: "Courier New", "Lucida Console", monospace;
+        color: #000000;
+    }
+
+    body.pos-printing .pos-invoice-title {
+        font-size: 14px;
+        letter-spacing: 0.2em;
+        text-align: center;
+        width: 100%;
+    }
+
+    body.pos-printing .pos-invoice-header {
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+    }
+
+    body.pos-printing .pos-invoice-company {
+        align-items: center;
+        text-align: center;
+        font-size: 11px;
+        gap: 2px;
+    }
+
+    body.pos-printing .pos-invoice-company-short {
+        font-size: 12px;
+        color: #000000;
+    }
+
+    body.pos-printing .pos-invoice-company-name {
+        font-size: 11px;
+    }
+
+    body.pos-printing .pos-invoice-company-meta {
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+        font-size: 10px;
+    }
+
+    body.pos-printing .pos-invoice-summary {
+        grid-template-columns: 1fr;
+        gap: 6px;
+        border: none;
+        border-top: 1px dashed #000000;
+        border-bottom: 1px dashed #000000;
+        border-radius: 0;
+        padding: 6px 0;
+        background: transparent;
+    }
+
+    body.pos-printing .pos-invoice-summary-label {
+        font-size: 10px;
+        letter-spacing: 0.12em;
+        color: #000000;
+    }
+
+    body.pos-printing .pos-invoice-summary-value {
+        font-size: 11px;
+        font-weight: 600;
+        color: #000000;
+    }
+
+    body.pos-printing .pos-invoice-summary-grid {
+        grid-template-columns: 1fr;
+        gap: 6px;
+    }
+
+    body.pos-printing .pos-invoice-table-wrapper {
+        border: none;
+        border-radius: 0;
+        max-height: none;
+        overflow: visible;
+    }
+
+    body.pos-printing .pos-invoice-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 11px;
+    }
+
+    body.pos-printing .pos-invoice-table thead {
+        display: none;
+    }
+
+    body.pos-printing .pos-invoice-table tbody tr {
+        border-bottom: 1px dotted #000000;
+    }
+
+    body.pos-printing .pos-invoice-table td {
+        padding: 6px 0;
+        border-bottom: none;
+        text-align: left;
+        vertical-align: top;
+    }
+
+    body.pos-printing .pos-invoice-table td:nth-child(2),
+    body.pos-printing .pos-invoice-table td:nth-child(3),
+    body.pos-printing .pos-invoice-table td:nth-child(4),
+    body.pos-printing .pos-invoice-table td:nth-child(5) {
+        text-align: right;
+    }
+
+    body.pos-printing .pos-invoice-item-name {
+        font-size: 11px;
+        font-weight: 700;
+        color: #000000;
+    }
+
+    body.pos-printing .pos-invoice-item-code {
+        font-size: 10px;
+        color: #000000;
+    }
+
+    body.pos-printing .pos-invoice-total {
+        justify-content: space-between;
+        font-size: 12px;
+        border-top: 1px dashed #000000;
+        padding-top: 6px;
+        color: #000000;
+    }
+
+    body.pos-printing .pos-invoice-footer {
+        font-size: 10px;
+        color: #000000;
+        text-align: center;
+        border-top: 1px dashed #000000;
+        padding-top: 6px;
     }
 }
 
