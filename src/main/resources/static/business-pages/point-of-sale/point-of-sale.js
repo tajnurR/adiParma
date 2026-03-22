@@ -24,6 +24,7 @@ window.BusinessPages.register("pos", function (root) {
     const posState = { selectedCustomer: null };
     root.posState = posState;
     let lastSaleResponse = null;
+    let customerSelectControl = null;
 
     const paymentCodeMap = {
         cash: 1,
@@ -318,7 +319,7 @@ window.BusinessPages.register("pos", function (root) {
                 if (!window.CustomerDropdownService || typeof window.CustomerDropdownService.initCustomerDropdown !== "function") {
                     return;
                 }
-                window.CustomerDropdownService.initCustomerDropdown({
+                customerSelectControl = window.CustomerDropdownService.initCustomerDropdown({
                     root,
                     selectEl: customerSelect,
                     onSelect: (customer) => {
@@ -517,6 +518,27 @@ window.BusinessPages.register("pos", function (root) {
         document.body.classList.add("pos-modal-open");
     }
 
+    function resetSaleInputs() {
+        posState.selectedCustomer = null;
+        if (customerSelectControl && typeof customerSelectControl.clear === "function") {
+            customerSelectControl.clear(true);
+            if (typeof customerSelectControl.setTextboxValue === "function") {
+                customerSelectControl.setTextboxValue("");
+            }
+        } else {
+            const fallbackInput = root.querySelector(".pos-customer-fallback");
+            if (fallbackInput instanceof HTMLInputElement) {
+                fallbackInput.value = "";
+            }
+        }
+
+        if (productSearchInput) {
+            productSearchInput.value = "";
+        }
+        products = [];
+        renderProducts();
+    }
+
     function printInvoice() {
         if (!lastSaleResponse || !lastSaleResponse.id) {
             if (window.ToastService && typeof window.ToastService.show === "function") {
@@ -615,6 +637,7 @@ window.BusinessPages.register("pos", function (root) {
                     renderCart();
                     if (cashInput) cashInput.value = "0.00";
                     updateTotals();
+                    resetSaleInputs();
                 })
                 .catch((error) => {
                     if (window.ToastService && typeof window.ToastService.show === "function") {
