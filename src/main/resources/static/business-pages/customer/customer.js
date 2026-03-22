@@ -115,11 +115,12 @@ window.BusinessPages.register("customer", function (root) {
                     data: null,
                     orderable: false,
                     searchable: false,
-                    render: function () {
+                    render: function (row) {
+                        const customerId = row?.id ?? "";
                         return `
                             <div class="customer-actions">
-                                <button class="customer-action-btn customer-action-refresh" type="button" aria-label="Refresh">
-                                    <span class="material-symbols-outlined">refresh</span>
+                                <button class="customer-action-btn customer-action-sales" type="button" data-id="${customerId}" aria-label="Sales history">
+                                    <span class="material-symbols-outlined">receipt_long</span>
                                 </button>
                                 <button class="customer-action-btn customer-action-edit" type="button" aria-label="Edit">
                                     <span class="material-symbols-outlined">edit</span>
@@ -164,6 +165,18 @@ window.BusinessPages.register("customer", function (root) {
                 dataTable.page.len(Number(pageSizeSelect.value || 20)).draw();
             });
         }
+    }
+
+    function bindActionEvents() {
+        tableEl.addEventListener("click", (event) => {
+            const target = event.target;
+            if (!(target instanceof HTMLElement)) return;
+            const button = target.closest(".customer-action-sales");
+            if (!button) return;
+            const customerId = button.getAttribute("data-id");
+            if (!customerId) return;
+            window.location.href = `/customers/${customerId}/sales`;
+        });
     }
 
     function openModal() {
@@ -259,6 +272,7 @@ window.BusinessPages.register("customer", function (root) {
     }
 
     bindModalEvents();
+    bindActionEvents();
     ensureDataTablesAssets().then(initTable).catch(() => {});
     return root;
 });

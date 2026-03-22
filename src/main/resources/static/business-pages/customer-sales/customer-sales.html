@@ -1,0 +1,60 @@
+<section class="customer-sales-page">
+    <div class="customer-sales-header">
+        <div>
+            <div class="customer-sales-title">Customer Sales History</div>
+            <div class="customer-sales-subtitle" id="customer-sales-subtitle">Customer</div>
+        </div>
+        <button class="customer-sales-back" id="customer-sales-back" type="button">
+            <span class="material-symbols-outlined">arrow_back</span>
+            Back to Customers
+        </button>
+    </div>
+
+    <div class="customer-sales-toolbar">
+        <div class="customer-sales-search">
+            <span class="material-symbols-outlined">search</span>
+            <input id="customer-sales-search" type="text" placeholder="Search invoice or payment..." aria-label="Search sales" />
+        </div>
+        <div class="customer-sales-count" id="customer-sales-count">0 sales</div>
+    </div>
+
+    <div class="customer-sales-table-wrapper">
+        <table class="customer-sales-table" id="customer-sales-table">
+            <thead>
+                <tr>
+                    <th>Invoice</th>
+                    <th>Date</th>
+                    <th>Payment</th>
+                    <th>Total</th>
+                    <th>Cash</th>
+                    <th>Change</th>
+                    <th>Processed By</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+        <div class="customer-sales-empty" id="customer-sales-empty">No sales found for this customer.</div>
+    </div>
+
+    <div class="customer-sales-details" id="customer-sales-details">
+        <div class="customer-sales-details-header">
+            <div class="customer-sales-details-title">Sale Details</div>
+            <div class="customer-sales-details-meta" id="customer-sales-details-meta">Select a sale to view items.</div>
+        </div>
+        <div class="customer-sales-details-body">
+            <table class="customer-sales-items-table" id="customer-sales-items-table">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Qty</th>
+                        <th>Unit Price</th>
+                        <th>Discount</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+            <div class="customer-sales-items-empty" id="customer-sales-items-empty">No items to display.</div>
+        </div>
+    </div>
+</section>
