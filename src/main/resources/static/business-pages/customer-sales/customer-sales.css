@@ -95,11 +95,33 @@
     background: #f8fafc;
 }
 
+.customer-sales-download-col {
+    text-align: center;
+}
+
 .customer-sales-table tbody td {
     padding: 12px 14px;
     font-size: 13px;
     color: #0f172a;
     border-bottom: 1px solid #f1f5f9;
+}
+
+.customer-sales-download-cell {
+    text-align: center;
+}
+
+.customer-sales-download-btn {
+    border: none;
+    background: transparent;
+    color: #2563eb;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.customer-sales-download-btn .material-symbols-outlined {
+    font-size: 18px;
 }
 
 .customer-sales-row {

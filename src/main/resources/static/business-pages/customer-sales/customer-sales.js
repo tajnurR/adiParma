@@ -67,6 +67,11 @@ window.BusinessPages.register("customerSales", function (root) {
                     <td>${formatMoney(sale.cashReceived)}</td>
                     <td>${formatMoney(sale.changeAmount)}</td>
                     <td>${sale.createdBy || "—"}</td>
+                    <td class="customer-sales-download-cell">
+                        <button class="customer-sales-download-btn" type="button" data-action="download" aria-label="Download invoice PDF">
+                            <span class="material-symbols-outlined">download</span>
+                        </button>
+                    </td>
                 </tr>
             `;
         }).join("");
@@ -191,6 +196,16 @@ window.BusinessPages.register("customerSales", function (root) {
         tableBody.addEventListener("click", (event) => {
             const target = event.target;
             if (!(target instanceof HTMLElement)) return;
+            const downloadBtn = target.closest("[data-action=\"download\"]");
+            if (downloadBtn) {
+                event.stopPropagation();
+                const row = downloadBtn.closest(".customer-sales-row");
+                if (!row) return;
+                const saleId = Number(row.getAttribute("data-id"));
+                if (!saleId) return;
+                window.open(`/api/invoices/${saleId}/pdf`, "_blank");
+                return;
+            }
             const row = target.closest(".customer-sales-row");
             if (!row) return;
             const saleId = Number(row.getAttribute("data-id"));
