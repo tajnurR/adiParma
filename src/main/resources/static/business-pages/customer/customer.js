@@ -4,6 +4,9 @@ window.BusinessPages.register("customer", function (root) {
     const sortSelect = root.querySelector("#customer-sort");
     const pageSizeSelect = root.querySelector("#customer-page-size");
     const resultCount = root.querySelector("#customer-result-count");
+    const addButton = root.querySelector(".customer-add-btn");
+    const modal = root.querySelector("#customer-modal");
+    const modalForm = root.querySelector("#customer-modal-form");
 
     if (!tableEl) return root;
 
@@ -49,8 +52,10 @@ window.BusinessPages.register("customer", function (root) {
         resultCount.textContent = `Showing ${start} to ${end} of ${filtered} results`;
     }
 
+    let dataTable = null;
+
     function initTable() {
-        const table = $(tableEl).DataTable({
+        dataTable = $(tableEl).DataTable({
             serverSide: true,
             processing: true,
             searching: true,
@@ -138,7 +143,7 @@ window.BusinessPages.register("customer", function (root) {
                 const value = event.target.value || "";
                 if (searchTimer) clearTimeout(searchTimer);
                 searchTimer = setTimeout(() => {
-                    table.search(value).draw();
+                    dataTable.search(value).draw();
                 }, 250);
             });
         }
@@ -147,20 +152,113 @@ window.BusinessPages.register("customer", function (root) {
             sortSelect.addEventListener("change", () => {
                 const value = sortSelect.value;
                 if (value === "name_asc") {
-                    table.order([0, "asc"]).draw();
+                    dataTable.order([0, "asc"]).draw();
                 } else {
-                    table.order([3, "desc"]).draw();
+                    dataTable.order([3, "desc"]).draw();
                 }
             });
         }
 
         if (pageSizeSelect) {
             pageSizeSelect.addEventListener("change", () => {
-                table.page.len(Number(pageSizeSelect.value || 20)).draw();
+                dataTable.page.len(Number(pageSizeSelect.value || 20)).draw();
             });
         }
     }
 
+    function openModal() {
+        if (!modal) return;
+        modal.classList.add("is-open");
+        modal.setAttribute("aria-hidden", "false");
+        const nameInput = modal.querySelector("input[name=\"name\"]");
+        if (nameInput instanceof HTMLInputElement) {
+            nameInput.focus();
+        }
+    }
+
+    function closeModal() {
+        if (!modal) return;
+        modal.classList.remove("is-open");
+        modal.setAttribute("aria-hidden", "true");
+        if (modalForm instanceof HTMLFormElement) {
+            modalForm.reset();
+        }
+    }
+
+    function bindModalEvents() {
+        if (!modal) return;
+
+        modal.addEventListener("click", (event) => {
+            const target = event.target;
+            if (!(target instanceof HTMLElement)) return;
+            const action = target.getAttribute("data-action");
+            if (action === "close-customer-modal") {
+                closeModal();
+            }
+        });
+
+        if (addButton) {
+            addButton.addEventListener("click", () => {
+                openModal();
+            });
+        }
+
+        if (modalForm) {
+            modalForm.addEventListener("submit", (event) => {
+                event.preventDefault();
+                const formData = new FormData(modalForm);
+                const payload = {
+                    name: String(formData.get("name") || "").trim(),
+                    phone: String(formData.get("phone") || "").trim(),
+                    age: String(formData.get("age") || "").trim(),
+                    address: String(formData.get("address") || "").trim()
+                };
+
+                if (!payload.name || !payload.phone || !payload.age || !payload.address) {
+                    if (window.ToastService && typeof window.ToastService.show === "function") {
+                        window.ToastService.show("Please fill in all required fields.", "error");
+                    }
+                    return;
+                }
+
+                const submitBtn = modalForm.querySelector(".customer-modal-submit");
+                if (submitBtn instanceof HTMLButtonElement) {
+                    submitBtn.disabled = true;
+                }
+
+                fetch("/api/customers", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                })
+                    .then((response) => response.json().then((data) => ({ ok: response.ok, data })))
+                    .then(({ ok, data }) => {
+                        if (!ok) {
+                            throw new Error(data?.message || "Failed to add customer.");
+                        }
+                        if (window.ToastService && typeof window.ToastService.show === "function") {
+                            window.ToastService.show("Customer added successfully.", "success");
+                        }
+                        closeModal();
+                        if (dataTable) {
+                            dataTable.ajax.reload(null, false);
+                        }
+                    })
+                    .catch((error) => {
+                        if (window.ToastService && typeof window.ToastService.show === "function") {
+                            window.ToastService.show(error.message || "Failed to add customer.", "error");
+                        }
+                    })
+                    .finally(() => {
+                        if (submitBtn instanceof HTMLButtonElement) {
+                            submitBtn.disabled = false;
+                        }
+                    });
+            });
+        }
+    }
+
+    bindModalEvents();
     ensureDataTablesAssets().then(initTable).catch(() => {});
     return root;
 });
