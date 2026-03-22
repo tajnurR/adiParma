@@ -56,6 +56,46 @@ public class CustomerService {
         return response;
     }
 
+    public Map<String, Object> datatable(
+        String query,
+        int start,
+        int length,
+        Sort sort
+    ) {
+        String trimmed = query == null ? "" : query.trim();
+        int safeLength = Math.max(1, Math.min(length, 50));
+        int safeStart = Math.max(start, 0);
+        int page = safeStart / safeLength;
+
+        PageRequest pageRequest = PageRequest.of(page, safeLength, sort);
+
+        Page<AdiCustomar> results;
+        long total = customarRepository.count();
+        if (trimmed.isEmpty()) {
+            results = customarRepository.findAll(pageRequest);
+        } else {
+            results = customarRepository
+                .findByNameContainingIgnoreCaseOrContactContainingIgnoreCase(trimmed, trimmed, pageRequest);
+        }
+
+        List<Map<String, Object>> items = results.stream().map(customer -> {
+            Map<String, Object> item = new HashMap<>();
+            item.put("id", customer.getId());
+            item.put("name", customer.getName());
+            item.put("contact", customer.getContact());
+            item.put("age", customer.getAge());
+            item.put("address", customer.getAddress());
+            item.put("added", customer.getAdded());
+            return item;
+        }).toList();
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("data", items);
+        response.put("recordsTotal", total);
+        response.put("recordsFiltered", trimmed.isEmpty() ? total : results.getTotalElements());
+        return response;
+    }
+
     public Map<String, Object> create(String name, String phone, String age, String address) {
         if (isBlank(name) || isBlank(phone) || isBlank(age) || isBlank(address)) {
             throw new IllegalArgumentException("name, phone, age, and address are required");

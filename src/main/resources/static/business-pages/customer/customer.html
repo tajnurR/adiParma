@@ -1,3 +1,51 @@
-<section class="bp-page-card">
-    <p class="bp-page-text">Welcome to Customer Page</p>
+<section class="customer-page">
+    <div class="customer-header">
+        <h1 class="customer-title">Customer</h1>
+        <button class="customer-add-btn" type="button">
+            <span class="material-symbols-outlined">add</span>
+            Add Customer
+        </button>
+    </div>
+
+    <div class="customer-search">
+        <span class="material-symbols-outlined">search</span>
+        <input
+            id="customer-search"
+            type="text"
+            placeholder="Search customers by name or phone..."
+            aria-label="Search customers by name or phone"
+        />
+    </div>
+
+    <div class="customer-toolbar">
+        <div class="customer-toolbar-left">
+            <label for="customer-sort">Sort by:</label>
+            <select id="customer-sort">
+                <option value="added_desc" selected>Date Added</option>
+                <option value="name_asc">Name</option>
+            </select>
+
+            <label for="customer-page-size">Per page:</label>
+            <select id="customer-page-size">
+                <option value="10">10</option>
+                <option value="20" selected>20</option>
+                <option value="50">50</option>
+            </select>
+        </div>
+        <div class="customer-toolbar-right" id="customer-result-count">Showing 0 to 0 of 0 results</div>
+    </div>
+
+    <div class="customer-table-wrapper">
+        <table id="customer-table" class="customer-table">
+            <thead>
+                <tr>
+                    <th>Customer</th>
+                    <th>Contact</th>
+                    <th>Address</th>
+                    <th>Added</th>
+                    <th class="customer-actions-col">Actions</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
 </section>

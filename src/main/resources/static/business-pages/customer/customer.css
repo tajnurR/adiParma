@@ -1,1 +1,232 @@
-/* Customer page styles (kept minimal to preserve shared UI) */
+.customer-page {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+    padding: 24px;
+}
+
+.customer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.customer-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.customer-add-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #2563eb;
+    color: #ffffff;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.2);
+}
+
+.customer-add-btn .material-symbols-outlined {
+    font-size: 18px;
+}
+
+.customer-search {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 10px 12px;
+    color: #94a3b8;
+    margin-bottom: 16px;
+}
+
+.customer-search input {
+    border: none;
+    outline: none;
+    flex: 1;
+    font-size: 14px;
+    color: #0f172a;
+}
+
+.customer-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 10px 0 6px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #475569;
+    font-size: 13px;
+}
+
+.customer-toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.customer-toolbar select {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 4px 10px;
+    font-size: 13px;
+    color: #0f172a;
+    background: #f8fafc;
+}
+
+.customer-table-wrapper {
+    margin-top: 8px;
+}
+
+.customer-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.customer-table thead th {
+    text-align: left;
+    font-size: 12px;
+    font-weight: 600;
+    color: #475569;
+    padding: 12px 10px;
+    text-transform: uppercase;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.customer-table tbody td {
+    padding: 12px 10px;
+    font-size: 14px;
+    color: #0f172a;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: top;
+}
+
+.customer-name {
+    font-weight: 600;
+    color: #111827;
+}
+
+.customer-meta-line {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #64748b;
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+.customer-meta-line .material-symbols-outlined {
+    font-size: 16px;
+}
+
+.customer-address {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    color: #475569;
+    font-size: 13px;
+}
+
+.customer-address .material-symbols-outlined {
+    font-size: 16px;
+    margin-top: 2px;
+    color: #94a3b8;
+}
+
+.customer-actions-col {
+    text-align: center;
+}
+
+.customer-table thead th.customer-actions-col {
+    text-align: center;
+}
+
+.customer-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.customer-action-btn {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+}
+
+.customer-action-btn .material-symbols-outlined {
+    font-size: 18px;
+}
+
+.customer-action-refresh {
+    color: #22c55e;
+}
+
+.customer-action-edit {
+    color: #2563eb;
+}
+
+.customer-action-delete {
+    color: #ef4444;
+}
+
+.customer-table-footer {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 12px;
+}
+
+.dataTables_paginate {
+    display: flex;
+    gap: 6px;
+}
+
+.dataTables_paginate .paginate_button {
+    border: 1px solid #e5e7eb !important;
+    border-radius: 8px !important;
+    padding: 6px 10px !important;
+    font-size: 12px;
+    color: #475569 !important;
+    background: #ffffff !important;
+    margin: 0 !important;
+}
+
+.dataTables_paginate .paginate_button.current {
+    background: #2563eb !important;
+    color: #ffffff !important;
+    border-color: #2563eb !important;
+}
+
+.dataTables_paginate .paginate_button.disabled {
+    color: #cbd5f5 !important;
+    border-color: #f1f5f9 !important;
+}
+
+@media (max-width: 900px) {
+    .customer-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .customer-toolbar {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .customer-toolbar-left {
+        flex-wrap: wrap;
+    }
+}

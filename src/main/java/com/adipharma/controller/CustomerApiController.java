@@ -2,6 +2,7 @@ package com.adipharma.controller;
 
 import com.adipharma.service.CustomerService;
 import java.util.Map;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,6 +29,32 @@ public class CustomerApiController {
         @RequestParam(name = "size", required = false, defaultValue = "10") int size
     ) {
         return customerService.search(query, page, size);
+    }
+
+    @GetMapping("/datatable")
+    public Map<String, Object> datatable(
+        @RequestParam(name = "draw", required = false, defaultValue = "0") int draw,
+        @RequestParam(name = "start", required = false, defaultValue = "0") int start,
+        @RequestParam(name = "length", required = false, defaultValue = "20") int length,
+        @RequestParam(name = "search[value]", required = false, defaultValue = "") String search,
+        @RequestParam(name = "order[0][column]", required = false, defaultValue = "3") int orderColumn,
+        @RequestParam(name = "order[0][dir]", required = false, defaultValue = "desc") String orderDir
+    ) {
+        String sortField = switch (orderColumn) {
+            case 0 -> "name";
+            case 1 -> "contact";
+            case 2 -> "address";
+            case 3 -> "added";
+            default -> "added";
+        };
+        Sort.Direction direction = "asc".equalsIgnoreCase(orderDir)
+            ? Sort.Direction.ASC
+            : Sort.Direction.DESC;
+        Sort sort = Sort.by(direction, sortField);
+
+        Map<String, Object> response = customerService.datatable(search, start, length, sort);
+        response.put("draw", draw);
+        return response;
     }
 
     @PostMapping
