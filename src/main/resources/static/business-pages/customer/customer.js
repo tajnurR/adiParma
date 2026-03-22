@@ -7,6 +7,8 @@ window.BusinessPages.register("customer", function (root) {
     const addButton = root.querySelector(".customer-add-btn");
     const modal = root.querySelector("#customer-modal");
     const modalForm = root.querySelector("#customer-modal-form");
+    const modalTitle = root.querySelector("#customer-modal-title");
+    const modalSubmit = modalForm ? modalForm.querySelector(".customer-modal-submit") : null;
 
     if (!tableEl) return root;
 
@@ -122,11 +124,8 @@ window.BusinessPages.register("customer", function (root) {
                                 <button class="customer-action-btn customer-action-sales" type="button" data-id="${customerId}" aria-label="Sales history">
                                     <span class="material-symbols-outlined">receipt_long</span>
                                 </button>
-                                <button class="customer-action-btn customer-action-edit" type="button" aria-label="Edit">
+                                <button class="customer-action-btn customer-action-edit" type="button" data-id="${customerId}" aria-label="Edit">
                                     <span class="material-symbols-outlined">edit</span>
-                                </button>
-                                <button class="customer-action-btn customer-action-delete" type="button" aria-label="Delete">
-                                    <span class="material-symbols-outlined">delete</span>
                                 </button>
                             </div>
                         `;
@@ -167,20 +166,46 @@ window.BusinessPages.register("customer", function (root) {
         }
     }
 
+    let editingCustomerId = null;
+
     function bindActionEvents() {
         tableEl.addEventListener("click", (event) => {
             const target = event.target;
             if (!(target instanceof HTMLElement)) return;
-            const button = target.closest(".customer-action-sales");
-            if (!button) return;
-            const customerId = button.getAttribute("data-id");
-            if (!customerId) return;
-            window.location.href = `/customers/${customerId}/sales`;
+            const salesButton = target.closest(".customer-action-sales");
+            if (salesButton) {
+                const customerId = salesButton.getAttribute("data-id");
+                if (!customerId) return;
+                window.location.href = `/customers/${customerId}/sales`;
+                return;
+            }
+            const editButton = target.closest(".customer-action-edit");
+            if (editButton) {
+                const customerId = editButton.getAttribute("data-id");
+                if (!customerId) return;
+                loadCustomerForEdit(customerId);
+            }
         });
     }
 
-    function openModal() {
+    function openModal(mode, customer) {
         if (!modal) return;
+        editingCustomerId = mode === "edit" ? Number(customer?.id) : null;
+        if (modalTitle) {
+            modalTitle.textContent = mode === "edit" ? "Update Customer" : "Add New Customer";
+        }
+        if (modalSubmit instanceof HTMLButtonElement) {
+            modalSubmit.textContent = mode === "edit" ? "Update" : "Submit";
+        }
+        if (modalForm instanceof HTMLFormElement) {
+            modalForm.reset();
+            if (mode === "edit" && customer) {
+                modalForm.querySelector("input[name=\"name\"]").value = customer.name || "";
+                modalForm.querySelector("input[name=\"phone\"]").value = customer.phone || customer.contact || "";
+                modalForm.querySelector("input[name=\"age\"]").value = customer.age || "";
+                modalForm.querySelector("input[name=\"address\"]").value = customer.address || "";
+            }
+        }
         modal.classList.add("is-open");
         modal.setAttribute("aria-hidden", "false");
         const nameInput = modal.querySelector("input[name=\"name\"]");
@@ -196,6 +221,29 @@ window.BusinessPages.register("customer", function (root) {
         if (modalForm instanceof HTMLFormElement) {
             modalForm.reset();
         }
+        editingCustomerId = null;
+        if (modalTitle) {
+            modalTitle.textContent = "Add New Customer";
+        }
+        if (modalSubmit instanceof HTMLButtonElement) {
+            modalSubmit.textContent = "Submit";
+        }
+    }
+
+    function loadCustomerForEdit(customerId) {
+        fetch(`/api/customers/${customerId}`)
+            .then((response) => response.json().then((data) => ({ ok: response.ok, data })))
+            .then(({ ok, data }) => {
+                if (!ok) {
+                    throw new Error(data?.message || "Failed to load customer.");
+                }
+                openModal("edit", data);
+            })
+            .catch((error) => {
+                if (window.ToastService && typeof window.ToastService.show === "function") {
+                    window.ToastService.show(error.message || "Failed to load customer.", "error");
+                }
+            });
     }
 
     function bindModalEvents() {
@@ -212,7 +260,7 @@ window.BusinessPages.register("customer", function (root) {
 
         if (addButton) {
             addButton.addEventListener("click", () => {
-                openModal();
+                openModal("create");
             });
         }
 
@@ -239,18 +287,24 @@ window.BusinessPages.register("customer", function (root) {
                     submitBtn.disabled = true;
                 }
 
-                fetch("/api/customers", {
-                    method: "POST",
+                const url = editingCustomerId ? `/api/customers/${editingCustomerId}` : "/api/customers";
+                const method = editingCustomerId ? "PUT" : "POST";
+
+                fetch(url, {
+                    method,
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(payload)
                 })
                     .then((response) => response.json().then((data) => ({ ok: response.ok, data })))
                     .then(({ ok, data }) => {
                         if (!ok) {
-                            throw new Error(data?.message || "Failed to add customer.");
+                            throw new Error(data?.message || "Failed to save customer.");
                         }
                         if (window.ToastService && typeof window.ToastService.show === "function") {
-                            window.ToastService.show("Customer added successfully.", "success");
+                            window.ToastService.show(
+                                editingCustomerId ? "Customer updated successfully." : "Customer added successfully.",
+                                "success"
+                            );
                         }
                         closeModal();
                         if (dataTable) {

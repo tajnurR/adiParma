@@ -122,6 +122,44 @@ public class CustomerService {
         return response;
     }
 
+    public Map<String, Object> getById(Integer id) {
+        AdiCustomar customer = customarRepository.findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("Customer not found."));
+        Map<String, Object> response = new HashMap<>();
+        response.put("id", customer.getId());
+        response.put("name", customer.getName());
+        response.put("phone", customer.getContact());
+        response.put("age", customer.getAge());
+        response.put("address", customer.getAddress());
+        return response;
+    }
+
+    public Map<String, Object> update(Integer id, String name, String phone, String age, String address) {
+        if (isBlank(name) || isBlank(phone) || isBlank(age) || isBlank(address)) {
+            throw new IllegalArgumentException("name, phone, age, and address are required");
+        }
+        if (!age.matches("^\\d{1,3}$")) {
+            throw new IllegalArgumentException("age must be 1 to 3 digits");
+        }
+        AdiCustomar customer = customarRepository.findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("Customer not found."));
+
+        customer.setName(name.trim());
+        customer.setContact(phone.trim());
+        customer.setAge(age);
+        customer.setAddress(address.trim());
+
+        AdiCustomar saved = customarRepository.save(customer);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("id", saved.getId());
+        response.put("name", saved.getName());
+        response.put("phone", saved.getContact());
+        response.put("age", saved.getAge());
+        response.put("address", saved.getAddress());
+        return response;
+    }
+
     private static boolean isBlank(String value) {
         return value == null || value.trim().isEmpty();
     }
