@@ -123,8 +123,26 @@ public class PointSalesService {
         }
 
         List<AdiPointSalesDetails> savedDetails = detailsRepository.saveAll(detailEntities);
+        updateStockQuantities(request.items, stockMap);
 
         return buildResponse(savedMaster, savedDetails);
+    }
+
+    private void updateStockQuantities(
+        List<PointSaleCreateRequest.Item> items,
+        Map<Long, AdiMedicineStockPriceMapping> stockMap
+    ) {
+        for (PointSaleCreateRequest.Item item : items) {
+            AdiMedicineStockPriceMapping stock = stockMap.get(item.id);
+            if (stock == null) {
+                continue;
+            }
+            int currentQty = stock.getQty() == null ? 0 : stock.getQty();
+            int soldQty = item.qty == null ? 0 : item.qty;
+            int newQty = currentQty - soldQty;
+            stock.setQty(Math.max(newQty, 0));
+        }
+        stockRepository.saveAll(stockMap.values());
     }
 
     private AdiPointSalesMaster saveMasterWithInvoice(PointSaleCreateRequest request, AdiCustomar customer) {
