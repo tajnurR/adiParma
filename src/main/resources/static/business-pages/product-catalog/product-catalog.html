@@ -1,0 +1,74 @@
+<section class="product-page">
+    <div class="product-header">
+        <h1 class="product-title">Product Catalog</h1>
+        <div class="product-header-actions">
+            <button class="product-btn product-btn-success product-bulk-btn" type="button">
+                <span class="material-symbols-outlined">upload</span>
+                Bulk Import
+            </button>
+            <button class="product-btn product-btn-primary product-add-btn" type="button">
+                <span class="material-symbols-outlined">add</span>
+                Add Product
+            </button>
+        </div>
+    </div>
+
+    <div class="product-filters">
+        <div class="product-search">
+            <span class="material-symbols-outlined">search</span>
+            <input
+                id="product-search"
+                type="text"
+                placeholder="Search by name, generic name, SKU, or manufacturer..."
+                aria-label="Search products"
+            />
+        </div>
+        <select id="product-category" class="product-category-select" aria-label="Filter by category">
+            <option value="" selected>All Categories</option>
+        </select>
+    </div>
+
+    <div class="product-toolbar">
+        <div class="product-toolbar-left">
+            <label for="product-sort">Sort by:</label>
+            <select id="product-sort">
+                <option value="name" selected>Name</option>
+                <option value="price">Price</option>
+                <option value="stock">Stock</option>
+            </select>
+            <button id="product-sort-direction" type="button" class="product-sort-btn" aria-label="Sort ascending">
+                <span class="material-symbols-outlined">north</span>
+            </button>
+
+            <label for="product-page-size">Per page:</label>
+            <select id="product-page-size">
+                <option value="10">10</option>
+                <option value="20" selected>20</option>
+                <option value="50">50</option>
+            </select>
+        </div>
+        <div class="product-toolbar-right" id="product-result-count">Showing 0 to 0 of 0 results</div>
+    </div>
+
+    <div class="product-table-wrapper">
+        <table class="product-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Category</th>
+                    <th>SKU</th>
+                    <th>Price</th>
+                    <th>Requires Rx</th>
+                    <th class="product-actions-col">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="product-table-body">
+                <tr>
+                    <td colspan="6" class="product-empty">Loading products...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="product-pagination" id="product-pagination"></div>
+</section>

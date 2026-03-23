@@ -52,6 +52,11 @@
                 html: "/business-pages/customer-sales/customer-sales.html",
                 css: "/business-pages/customer-sales/customer-sales.css",
                 js: "/business-pages/customer-sales/customer-sales.js"
+            },
+            productCatalog: {
+                html: "/business-pages/product-catalog/product-catalog.html",
+                css: "/business-pages/product-catalog/product-catalog.css",
+                js: "/business-pages/product-catalog/product-catalog.js"
             }
         };
         const commonAssets = {
@@ -135,6 +140,7 @@
             if (path === "/pos") return "pos";
             if (path === "/customers") return "customer";
             if (/^\/customers\/\d+\/sales$/.test(path)) return "customerSales";
+            if (path === "/products") return "productCatalog";
             return "overview";
         }
 

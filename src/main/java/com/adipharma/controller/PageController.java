@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class PageController {
 
-    @GetMapping({ "/pos", "/customers" })
+    @GetMapping({ "/pos", "/customers", "/products" })
     public String pages() {
         return "home/index";
     }
