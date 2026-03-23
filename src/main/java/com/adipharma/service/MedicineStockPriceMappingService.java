@@ -1,11 +1,18 @@
 package com.adipharma.service;
 
+import com.adipharma.entity.AdiMedicineDetails;
+import com.adipharma.entity.AdiMedicineGeneric;
+import com.adipharma.entity.AdiMedicineManufacturals;
 import com.adipharma.entity.AdiMedicineStockPriceMapping;
+import com.adipharma.repository.AdiMedicineDetailsRepository;
+import com.adipharma.repository.AdiMedicineGenericRepository;
+import com.adipharma.repository.AdiMedicineManufacturalsRepository;
 import com.adipharma.repository.AdiMedicineStockPriceMappingRepository;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.math.BigDecimal;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -17,9 +24,20 @@ public class MedicineStockPriceMappingService {
     private static final int MAX_CATALOG_PAGE_SIZE = 100;
 
     private final AdiMedicineStockPriceMappingRepository repository;
+    private final AdiMedicineDetailsRepository detailsRepository;
+    private final AdiMedicineGenericRepository genericRepository;
+    private final AdiMedicineManufacturalsRepository manufacturerRepository;
 
-    public MedicineStockPriceMappingService(AdiMedicineStockPriceMappingRepository repository) {
+    public MedicineStockPriceMappingService(
+        AdiMedicineStockPriceMappingRepository repository,
+        AdiMedicineDetailsRepository detailsRepository,
+        AdiMedicineGenericRepository genericRepository,
+        AdiMedicineManufacturalsRepository manufacturerRepository
+    ) {
         this.repository = repository;
+        this.detailsRepository = detailsRepository;
+        this.genericRepository = genericRepository;
+        this.manufacturerRepository = manufacturerRepository;
     }
 
     public List<AdiMedicineStockPriceMapping> getMedicineStockDetailsWithLimit(String query) {
@@ -69,5 +87,97 @@ public class MedicineStockPriceMappingService {
         return repository.findDistinctTypes().stream()
             .filter(value -> value != null && !value.trim().isEmpty())
             .collect(Collectors.toList());
+    }
+
+    public List<Map<String, Object>> getGenerics() {
+        return genericRepository.findAll(Sort.by("genericName").ascending())
+            .stream()
+            .map(generic -> Map.<String, Object>of(
+                "id", generic.getId(),
+                "name", generic.getGenericName()
+            ))
+            .collect(Collectors.toList());
+    }
+
+    public List<Map<String, Object>> getManufacturers() {
+        return manufacturerRepository.findAll(Sort.by("manufacturerName").ascending())
+            .stream()
+            .map(manufacturer -> Map.<String, Object>of(
+                "id", manufacturer.getId(),
+                "name", manufacturer.getManufacturerName()
+            ))
+            .collect(Collectors.toList());
+    }
+
+    public Map<String, Object> createProduct(
+        String name,
+        String code,
+        Long genericId,
+        Long manufacturerId,
+        String category,
+        String description,
+        BigDecimal sellingPrice,
+        BigDecimal costPrice,
+        Integer qty,
+        Boolean requiresRx,
+        Boolean trackExpiry
+    ) {
+        if (isBlank(name) || isBlank(code) || genericId == null || manufacturerId == null || isBlank(category)) {
+            throw new IllegalArgumentException("name, code, generic, manufacturer, and category are required");
+        }
+        if (!code.trim().matches("^M\\d{6}$")) {
+            throw new IllegalArgumentException("code must follow format M######");
+        }
+        if (sellingPrice == null || sellingPrice.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("selling price must be a positive number");
+        }
+        if (costPrice != null && costPrice.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("cost price must be a positive number");
+        }
+        if (qty == null || qty < 0) {
+            throw new IllegalArgumentException("stock quantity must be zero or greater");
+        }
+        if (detailsRepository.existsByBrandCode(code.trim())) {
+            throw new IllegalArgumentException("product code already exists");
+        }
+
+        AdiMedicineGeneric generic = genericRepository.findById(genericId)
+            .orElseThrow(() -> new IllegalArgumentException("generic not found"));
+        AdiMedicineManufacturals manufacturer = manufacturerRepository.findById(manufacturerId)
+            .orElseThrow(() -> new IllegalArgumentException("manufacturer not found"));
+
+        AdiMedicineDetails details = AdiMedicineDetails.builder()
+            .brandName(name.trim())
+            .brandCode(code.trim())
+            .type(category.trim())
+            .description(isBlank(description) ? null : description.trim())
+            .generic(generic)
+            .manufacturer(manufacturer)
+            .requiresRx(requiresRx != null && requiresRx)
+            .trackExpiry(trackExpiry != null && trackExpiry)
+            .build();
+
+        AdiMedicineDetails savedDetails = detailsRepository.save(details);
+
+        AdiMedicineStockPriceMapping mapping = AdiMedicineStockPriceMapping.builder()
+            .medicine(savedDetails)
+            .price(sellingPrice)
+            .costPrice(costPrice)
+            .qty(qty)
+            .addedBy("admin")
+            .build();
+
+        AdiMedicineStockPriceMapping savedMapping = repository.save(mapping);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("id", savedMapping.getId());
+        response.put("medicineId", savedDetails.getId());
+        response.put("name", savedDetails.getBrandName());
+        response.put("code", savedDetails.getBrandCode());
+        return response;
+    }
+
+    private static boolean isBlank(String value) {
+        return value == null || value.trim().isEmpty();
     }
 }

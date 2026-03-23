@@ -9,6 +9,8 @@ window.BusinessPages.register("productCatalog", function (root) {
     const paginationEl = root.querySelector("#product-pagination");
     const bulkBtn = root.querySelector(".product-bulk-btn");
     const addBtn = root.querySelector(".product-add-btn");
+    const modal = root.querySelector("#product-modal");
+    const modalForm = root.querySelector("#product-modal-form");
 
     if (!tableBody) return root;
 
@@ -25,7 +27,7 @@ window.BusinessPages.register("productCatalog", function (root) {
 
     function formatMoney(value) {
         const numeric = Number(value || 0);
-        return `$${numeric.toFixed(2)}`;
+        return `৳${numeric.toFixed(2)}`;
     }
 
     function getCategoryLabel(item) {
@@ -39,11 +41,7 @@ window.BusinessPages.register("productCatalog", function (root) {
 
     function getRxLabel(item) {
         const medicine = item?.medicine || {};
-        const type = (medicine.type || "").toLowerCase();
-        if (type.includes("antibiotic") || type.includes("rx")) {
-            return "Yes";
-        }
-        return "No";
+        return medicine.requiresRx ? "Yes" : "No";
     }
 
     function updateSortDirButton() {
@@ -221,6 +219,62 @@ window.BusinessPages.register("productCatalog", function (root) {
             });
     }
 
+    function loadSelectOptions(endpoint, selectEl, placeholder) {
+        if (!selectEl) return;
+        fetch(endpoint)
+            .then((response) => response.json())
+            .then((data) => {
+                if (!Array.isArray(data)) return;
+                selectEl.innerHTML = "";
+                const defaultOption = document.createElement("option");
+                defaultOption.value = "";
+                defaultOption.disabled = true;
+                defaultOption.selected = true;
+                defaultOption.textContent = placeholder;
+                selectEl.appendChild(defaultOption);
+
+                data.forEach((item) => {
+                    const option = document.createElement("option");
+                    option.value = String(item.id);
+                    option.textContent = item.name;
+                    selectEl.appendChild(option);
+                });
+            })
+            .catch(() => {
+                // Keep empty select if load fails.
+            });
+    }
+
+    function openModal() {
+        if (!modal) return;
+        modal.classList.add("is-open");
+        modal.setAttribute("aria-hidden", "false");
+        const nameInput = modal.querySelector("input[name=\"name\"]");
+        if (nameInput instanceof HTMLInputElement) {
+            nameInput.focus();
+        }
+    }
+
+    function closeModal() {
+        if (!modal) return;
+        modal.classList.remove("is-open");
+        modal.setAttribute("aria-hidden", "true");
+        if (modalForm instanceof HTMLFormElement) {
+            modalForm.reset();
+        }
+    }
+
+    function bindModalActions() {
+        if (!modal) return;
+        modal.addEventListener("click", (event) => {
+            const target = event.target;
+            if (!(target instanceof HTMLElement)) return;
+            if (target.closest("[data-action=\"close-product-modal\"]")) {
+                closeModal();
+            }
+        });
+    }
+
     if (searchInput) {
         searchInput.addEventListener("input", (event) => {
             const value = event.target.value || "";
@@ -305,13 +359,121 @@ window.BusinessPages.register("productCatalog", function (root) {
 
     if (addBtn) {
         addBtn.addEventListener("click", () => {
-            if (window.ToastService && typeof window.ToastService.show === "function") {
-                window.ToastService.show("Product creation is not configured yet.", "info");
-            }
+            openModal();
         });
     }
 
+    if (modalForm instanceof HTMLFormElement) {
+        const sellingInput = modalForm.querySelector("input[name=\"sellingPrice\"]");
+        const costInput = modalForm.querySelector("input[name=\"costPrice\"]");
+        const sellingPreview = modalForm.querySelector("#product-selling-preview");
+        const costPreview = modalForm.querySelector("#product-cost-preview");
+        const profitPreview = modalForm.querySelector("#product-profit-margin");
+
+        function updatePricingPreview() {
+            const selling = Number(sellingInput?.value || 0);
+            const cost = Number(costInput?.value || 0);
+            if (sellingPreview) sellingPreview.textContent = `Preview: ৳${selling.toFixed(2)}`;
+            if (costPreview) costPreview.textContent = `Preview: ৳${cost.toFixed(2)}`;
+            let margin = 0;
+            if (selling > 0) {
+                margin = ((selling - cost) / selling) * 100;
+            }
+            const safeMargin = Number.isFinite(margin) ? margin : 0;
+            if (profitPreview) {
+                profitPreview.innerHTML = `Profit Margin: <span>${safeMargin.toFixed(1)}%</span>`;
+            }
+        }
+
+        if (sellingInput) {
+            sellingInput.addEventListener("input", updatePricingPreview);
+        }
+        if (costInput) {
+            costInput.addEventListener("input", updatePricingPreview);
+        }
+
+        modalForm.addEventListener("submit", (event) => {
+            event.preventDefault();
+            const formData = new FormData(modalForm);
+            const payload = {
+                name: formData.get("name") || "",
+                code: formData.get("code") || "",
+                genericId: formData.get("genericId") ? Number(formData.get("genericId")) : null,
+                manufacturerId: formData.get("manufacturerId") ? Number(formData.get("manufacturerId")) : null,
+                category: formData.get("category") || "",
+                description: formData.get("description") || "",
+                sellingPrice: formData.get("sellingPrice") ? Number(formData.get("sellingPrice")) : null,
+                costPrice: formData.get("costPrice") ? Number(formData.get("costPrice")) : null,
+                qty: formData.get("qty") ? Number(formData.get("qty")) : null,
+                requiresRx: formData.get("requiresRx") === "on",
+                trackExpiry: formData.get("trackExpiry") === "on"
+            };
+            const codeValue = String(payload.code || "").trim();
+            if (!/^M\d{6}$/.test(codeValue)) {
+                if (window.ToastService && typeof window.ToastService.show === "function") {
+                    window.ToastService.show("Code must be M followed by 6 digits (e.g., M217156).", "error");
+                }
+                return;
+            }
+
+            fetch("/api/products", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(payload)
+            })
+                .then((response) => response.json().then((data) => ({ ok: response.ok, data })))
+                .then(({ ok, data }) => {
+                    if (!ok) {
+                        throw new Error(data?.message || "Unable to create product.");
+                    }
+                    closeModal();
+                    loadCatalog();
+                    if (window.ToastService && typeof window.ToastService.show === "function") {
+                        window.ToastService.show("Product created successfully.", "success");
+                    }
+                })
+                .catch((error) => {
+                    if (window.ToastService && typeof window.ToastService.show === "function") {
+                        window.ToastService.show(error.message || "Unable to create product.", "error");
+                    }
+                });
+        });
+
+        updatePricingPreview();
+    }
+
     loadCategories();
+    if (modalForm) {
+        const genericSelect = modalForm.querySelector("select[name=\"genericId\"]");
+        const manufacturerSelect = modalForm.querySelector("select[name=\"manufacturerId\"]");
+        const categorySelectModal = modalForm.querySelector("select[name=\"category\"]");
+        loadSelectOptions("/api/products/options/generics", genericSelect, "Select generic name");
+        loadSelectOptions("/api/products/options/manufacturers", manufacturerSelect, "Select manufacturer");
+        fetch("/api/products/catalog/categories")
+            .then((response) => response.json())
+            .then((data) => {
+                if (!Array.isArray(data) || !categorySelectModal) return;
+                categorySelectModal.innerHTML = "";
+                const defaultOption = document.createElement("option");
+                defaultOption.value = "";
+                defaultOption.disabled = true;
+                defaultOption.selected = true;
+                defaultOption.textContent = "Select category";
+                categorySelectModal.appendChild(defaultOption);
+                data.forEach((category) => {
+                    const option = document.createElement("option");
+                    option.value = category;
+                    option.textContent = category;
+                    categorySelectModal.appendChild(option);
+                });
+            })
+            .catch(() => {
+                // Ignore modal category load errors.
+            });
+    }
+    bindModalActions();
     loadCatalog();
     return root;
 });

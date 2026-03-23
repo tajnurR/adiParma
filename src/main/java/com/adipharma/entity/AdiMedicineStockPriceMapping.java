@@ -47,6 +47,9 @@ public class AdiMedicineStockPriceMapping {
     @Column(name = "price", nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
 
+    @Column(name = "cost_price", precision = 10, scale = 2)
+    private BigDecimal costPrice;
+
     @Column(name = "expire_date")
     private LocalDate expireDate;
 

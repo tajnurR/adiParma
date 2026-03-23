@@ -46,6 +46,15 @@ public class AdiMedicineDetails {
     @Column(name = "dosage_form", length = 100)
     private String dosageForm;
 
+    @Column(name = "description", columnDefinition = "text")
+    private String description;
+
+    @Column(name = "requires_rx")
+    private Boolean requiresRx;
+
+    @Column(name = "track_expiry")
+    private Boolean trackExpiry;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = true)
     @JoinColumn(
         name = "generic_id",

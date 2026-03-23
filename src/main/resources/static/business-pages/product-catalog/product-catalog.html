@@ -56,7 +56,7 @@
                 <tr>
                     <th>Name</th>
                     <th>Category</th>
-                    <th>SKU</th>
+                    <th>Code</th>
                     <th>Price</th>
                     <th>Requires Rx</th>
                     <th class="product-actions-col">Actions</th>
@@ -72,3 +72,136 @@
 
     <div class="product-pagination" id="product-pagination"></div>
 </section>
+
+<div class="product-modal" id="product-modal" aria-hidden="true">
+    <div class="product-modal-backdrop" data-action="close-product-modal"></div>
+    <div class="product-modal-card" role="dialog" aria-modal="true" aria-labelledby="product-modal-title">
+        <div class="product-modal-header">
+            <h2 class="product-modal-title" id="product-modal-title">Add New Product</h2>
+            <button type="button" class="product-modal-close" data-action="close-product-modal" aria-label="Close">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        <form class="product-modal-form" id="product-modal-form">
+            <div class="product-modal-grid">
+                <label class="product-modal-field">
+                    <span>Product Name</span>
+                    <div class="product-input">
+                        <span class="material-symbols-outlined">inventory_2</span>
+                        <input type="text" name="name" placeholder="Enter product name" required />
+                    </div>
+                </label>
+                <label class="product-modal-field">
+                    <span>Generic Name</span>
+                    <div class="product-input">
+                        <span class="material-symbols-outlined">medical_information</span>
+                        <select name="genericId" required>
+                            <option value="" disabled selected>Select generic name</option>
+                        </select>
+                    </div>
+                </label>
+            </div>
+
+            <label class="product-modal-field">
+                <span>Description</span>
+                <div class="product-input">
+                    <span class="material-symbols-outlined">description</span>
+                    <textarea name="description" placeholder="Enter product description (optional)" rows="3"></textarea>
+                </div>
+            </label>
+
+            <div class="product-modal-grid product-modal-grid-3">
+                <label class="product-modal-field">
+                    <span>Category</span>
+                    <div class="product-input">
+                        <span class="material-symbols-outlined">category</span>
+                        <select name="category" required>
+                            <option value="" disabled selected>Select category</option>
+                        </select>
+                    </div>
+                </label>
+                <label class="product-modal-field">
+                    <span>Manufacturer</span>
+                    <div class="product-input">
+                        <span class="material-symbols-outlined">factory</span>
+                        <select name="manufacturerId" required>
+                            <option value="" disabled selected>Select manufacturer</option>
+                        </select>
+                    </div>
+                </label>
+                <label class="product-modal-field">
+                    <span>Code</span>
+                    <div class="product-input">
+                        <span class="material-symbols-outlined">barcode</span>
+                        <input
+                            type="text"
+                            name="code"
+                            placeholder="Enter product code"
+                            required
+                            pattern="M\\d{6}"
+                            maxlength="7"
+                            minlength="7"
+                            title="Format must be M followed by 6 digits (e.g., M217156)"
+                        />
+                    </div>
+                    <small class="product-helper">Stock Keeping Unit - Unique identifier for the product</small>
+                </label>
+            </div>
+
+            <div class="product-modal-section">
+                <h3>Pricing Information</h3>
+                <div class="product-modal-grid">
+                    <label class="product-modal-field">
+                        <span>Selling Price</span>
+                        <div class="product-input">
+                            <span class="material-symbols-outlined">payments</span>
+                            <input type="number" name="sellingPrice" min="0" step="0.01" value="0" required />
+                        </div>
+                        <div class="product-preview" id="product-selling-preview">Preview: ৳0.00</div>
+                    </label>
+                    <label class="product-modal-field">
+                        <span>Cost Price</span>
+                        <div class="product-input">
+                            <span class="material-symbols-outlined">payments</span>
+                            <input type="number" name="costPrice" min="0" step="0.01" value="0" required />
+                        </div>
+                        <div class="product-preview" id="product-cost-preview">Preview: ৳0.00</div>
+                    </label>
+                </div>
+                <div class="product-modal-grid">
+                    <label class="product-modal-field">
+                        <span>Stock Qty</span>
+                        <div class="product-input">
+                            <span class="material-symbols-outlined">inventory</span>
+                            <input type="number" name="qty" min="0" step="1" value="0" required />
+                        </div>
+                    </label>
+                </div>
+                <div class="product-profit" id="product-profit-margin">Profit Margin: 0.0%</div>
+            </div>
+
+            <div class="product-modal-section">
+                <h3>Additional Settings</h3>
+                <label class="product-toggle">
+                    <input type="checkbox" name="requiresRx" />
+                    <div>
+                        <strong>Requires Prescription</strong>
+                        <span>Enable if this product requires a prescription</span>
+                    </div>
+                </label>
+                <label class="product-toggle">
+                    <input type="checkbox" name="trackExpiry" checked />
+                    <div>
+                        <strong>Track Expiry Date</strong>
+                        <span>Enable to track expiry dates for this product</span>
+                    </div>
+                </label>
+            </div>
+
+            <div class="product-modal-actions">
+                <button type="button" class="product-modal-cancel" data-action="close-product-modal">Cancel</button>
+                <button type="submit" class="product-modal-submit">Create Product</button>
+            </div>
+        </form>
+    </div>
+</div>

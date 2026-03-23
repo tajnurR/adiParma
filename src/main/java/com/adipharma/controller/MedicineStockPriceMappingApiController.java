@@ -4,10 +4,15 @@ import com.adipharma.service.MedicineStockPriceMappingService;
 import com.adipharma.entity.AdiMedicineStockPriceMapping;
 import java.util.List;
 import java.util.Map;
+import java.math.BigDecimal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
 @RequestMapping("/api/")
@@ -41,5 +46,56 @@ public class MedicineStockPriceMappingApiController {
     @GetMapping("products/catalog/categories")
     public List<String> getProductCatalogCategories() {
         return service.getCatalogCategories();
+    }
+
+    @GetMapping("products/options/generics")
+    public List<Map<String, Object>> getGenericOptions() {
+        return service.getGenerics();
+    }
+
+    @GetMapping("products/options/manufacturers")
+    public List<Map<String, Object>> getManufacturerOptions() {
+        return service.getManufacturers();
+    }
+
+    @PostMapping("products")
+    public ResponseEntity<?> createProduct(@RequestBody CreateProductRequest request) {
+        if (request == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("message", "product details are required"));
+        }
+        try {
+            Map<String, Object> response = service.createProduct(
+                request.name,
+                request.code,
+                request.genericId,
+                request.manufacturerId,
+                request.category,
+                request.description,
+                request.sellingPrice,
+                request.costPrice,
+                request.qty,
+                request.requiresRx,
+                request.trackExpiry
+            );
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("message", ex.getMessage()));
+        }
+    }
+
+    public static class CreateProductRequest {
+        public String name;
+        public String code;
+        public Long genericId;
+        public Long manufacturerId;
+        public String category;
+        public String description;
+        public BigDecimal sellingPrice;
+        public BigDecimal costPrice;
+        public Integer qty;
+        public Boolean requiresRx;
+        public Boolean trackExpiry;
     }
 }

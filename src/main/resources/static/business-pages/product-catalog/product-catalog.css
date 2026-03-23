@@ -232,6 +232,206 @@
     flex-wrap: wrap;
 }
 
+.product-modal {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(15, 23, 42, 0.4);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    z-index: 1200;
+}
+
+.product-modal.is-open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.product-modal-backdrop {
+    position: absolute;
+    inset: 0;
+}
+
+.product-modal-card {
+    position: relative;
+    z-index: 1;
+    background: #ffffff;
+    border-radius: 16px;
+    width: min(760px, 100%);
+    max-height: 90vh;
+    overflow: auto;
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.2);
+    padding: 20px 22px 18px;
+}
+
+.product-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #eef2f7;
+}
+
+.product-modal-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.product-modal-close {
+    border: none;
+    background: transparent;
+    color: #94a3b8;
+    cursor: pointer;
+}
+
+.product-modal-form {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding-top: 16px;
+}
+
+.product-modal-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.product-modal-grid-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.product-modal-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 13px;
+    color: #475569;
+}
+
+.product-input {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 8px 10px;
+    background: #f8fafc;
+    color: #94a3b8;
+}
+
+.product-input input,
+.product-input select,
+.product-input textarea {
+    border: none;
+    outline: none;
+    background: transparent;
+    flex: 1;
+    font-size: 14px;
+    color: #0f172a;
+}
+
+.product-input textarea {
+    resize: vertical;
+    min-height: 76px;
+}
+
+.product-helper {
+    font-size: 11px;
+    color: #94a3b8;
+}
+
+.product-preview {
+    font-size: 12px;
+    color: #64748b;
+}
+
+.product-profit {
+    font-size: 13px;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.product-profit span {
+    color: #22c55e;
+}
+
+.product-modal-section {
+    border: 1px solid #eef2f7;
+    border-radius: 12px;
+    padding: 14px;
+    background: #fbfdff;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.product-modal-section h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.product-toggle {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px;
+    border: 1px solid #eef2f7;
+    border-radius: 10px;
+    background: #ffffff;
+    font-size: 13px;
+    color: #475569;
+}
+
+.product-toggle input {
+    width: 16px;
+    height: 16px;
+}
+
+.product-toggle strong {
+    display: block;
+    color: #1f2937;
+}
+
+.product-toggle span {
+    display: block;
+    font-size: 12px;
+    color: #94a3b8;
+}
+
+.product-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding-top: 8px;
+    border-top: 1px solid #eef2f7;
+}
+
+.product-modal-cancel {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 8px 14px;
+    background: #ffffff;
+    color: #64748b;
+    cursor: pointer;
+}
+
+.product-modal-submit {
+    border: none;
+    border-radius: 8px;
+    padding: 8px 16px;
+    background: #8aa6ff;
+    color: #ffffff;
+    font-weight: 600;
+    cursor: pointer;
+}
+
 .product-page-btn {
     border: 1px solid #e5e7eb;
     border-radius: 8px;
@@ -271,5 +471,10 @@
 
     .product-toolbar-left {
         flex-wrap: wrap;
+    }
+
+    .product-modal-grid,
+    .product-modal-grid-3 {
+        grid-template-columns: 1fr;
     }
 }
