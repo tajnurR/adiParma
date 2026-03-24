@@ -128,6 +128,25 @@ public class MedicineStockPriceMappingApiController {
         }
     }
 
+    @PostMapping("products/{id}/pricing")
+    public ResponseEntity<?> addPricing(
+        @PathVariable("id") Long id,
+        @RequestBody PricingRequest request
+    ) {
+        if (request == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("message", "pricing details are required"));
+        }
+        try {
+            return ResponseEntity.ok(
+                service.addPricing(id, request.sellingPrice, request.costPrice, request.qty)
+            );
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("message", ex.getMessage()));
+        }
+    }
+
     public static class CreateProductRequest {
         public String name;
         public String code;
@@ -140,5 +159,11 @@ public class MedicineStockPriceMappingApiController {
         public Integer qty;
         public Boolean requiresRx;
         public Boolean trackExpiry;
+    }
+
+    public static class PricingRequest {
+        public BigDecimal sellingPrice;
+        public BigDecimal costPrice;
+        public Integer qty;
     }
 }

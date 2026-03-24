@@ -259,6 +259,50 @@ public class MedicineStockPriceMappingService {
         return response;
     }
 
+    public Map<String, Object> addPricing(
+        Long medicineId,
+        BigDecimal sellingPrice,
+        BigDecimal costPrice,
+        Integer qty
+    ) {
+        if (medicineId == null) {
+            throw new IllegalArgumentException("medicine id is required");
+        }
+        if (sellingPrice == null || sellingPrice.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("selling price must be a positive number");
+        }
+        if (costPrice == null || costPrice.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("cost price must be a positive number");
+        }
+        if (qty == null || qty < 0) {
+            throw new IllegalArgumentException("stock quantity must be zero or greater");
+        }
+
+        AdiMedicineDetails details = detailsRepository.findById(medicineId)
+            .orElseThrow(() -> new IllegalArgumentException("medicine not found"));
+
+        AdiMedicineStockPriceMapping mapping = repository
+            .findByMedicineAndPrices(medicineId, sellingPrice, costPrice)
+            .orElseGet(() -> AdiMedicineStockPriceMapping.builder()
+                .medicine(details)
+                .price(sellingPrice)
+                .costPrice(costPrice)
+                .addedBy("admin")
+                .build()
+            );
+
+        mapping.setQty(qty);
+        AdiMedicineStockPriceMapping saved = repository.save(mapping);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("id", saved.getId());
+        response.put("medicineId", details.getId());
+        response.put("qty", saved.getQty());
+        response.put("price", saved.getPrice());
+        response.put("costPrice", saved.getCostPrice());
+        return response;
+    }
+
     private static boolean isBlank(String value) {
         return value == null || value.trim().isEmpty();
     }

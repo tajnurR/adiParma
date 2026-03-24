@@ -24,6 +24,11 @@ window.BusinessPages.register("productCatalog", function (root) {
     const barcodeShowCode = root.querySelector("#barcode-show-code");
     const barcodePrintBtn = root.querySelector("#barcode-print-btn");
     const barcodePdfBtn = root.querySelector("#barcode-pdf-btn");
+    const pricingModal = root.querySelector("#product-pricing-modal");
+    const pricingForm = root.querySelector("#product-pricing-form");
+    const pricingProductName = root.querySelector("#pricing-product-name");
+    const pricingProductCode = root.querySelector("#pricing-product-code");
+    let activePricingMedicineId = null;
 
     if (!tableBody) return root;
 
@@ -159,6 +164,7 @@ window.BusinessPages.register("productCatalog", function (root) {
                 const rxLabel = getRxLabel(item);
                 catalogCache.set(String(item.id), {
                     id: item.id,
+                    medicineId: medicine.id,
                     name,
                     code: sku,
                     price: Number(item.price || 0)
@@ -178,6 +184,9 @@ window.BusinessPages.register("productCatalog", function (root) {
                             <div class="product-actions">
                                 <button class="product-action-btn product-action-analytics" type="button" data-action="barcode" aria-label="Barcode">
                                     <span class="material-symbols-outlined">barcode</span>
+                                </button>
+                                <button class="product-action-btn product-action-pricing" type="button" data-action="pricing" aria-label="Pricing">
+                                    <span class="material-symbols-outlined">payments</span>
                                 </button>
                                 <button class="product-action-btn product-action-edit" type="button" data-action="edit" aria-label="Edit">
                                     <span class="material-symbols-outlined">edit</span>
@@ -597,6 +606,28 @@ window.BusinessPages.register("productCatalog", function (root) {
         });
     }
 
+    function openPricingModal(product) {
+        if (!pricingModal) return;
+        if (pricingProductName) pricingProductName.textContent = product.name || "";
+        if (pricingProductCode) pricingProductCode.textContent = product.code || "";
+        activePricingMedicineId = product.medicineId || null;
+        if (pricingForm instanceof HTMLFormElement) {
+            pricingForm.reset();
+        }
+        pricingModal.classList.add("is-open");
+        pricingModal.setAttribute("aria-hidden", "false");
+    }
+
+    function closePricingModal() {
+        if (!pricingModal) return;
+        pricingModal.classList.remove("is-open");
+        pricingModal.setAttribute("aria-hidden", "true");
+        if (pricingForm instanceof HTMLFormElement) {
+            pricingForm.reset();
+        }
+        activePricingMedicineId = null;
+    }
+
     if (searchInput) {
         searchInput.addEventListener("input", (event) => {
             const value = event.target.value || "";
@@ -667,6 +698,14 @@ window.BusinessPages.register("productCatalog", function (root) {
                 const productId = row?.getAttribute("data-id");
                 if (productId && catalogCache.has(productId)) {
                     openBarcodeModal(catalogCache.get(productId));
+                }
+                return;
+            }
+            if (action === "pricing") {
+                const row = actionButton.closest("tr");
+                const productId = row?.getAttribute("data-id");
+                if (productId && catalogCache.has(productId)) {
+                    openPricingModal(catalogCache.get(productId));
                 }
                 return;
             }
@@ -834,6 +873,54 @@ window.BusinessPages.register("productCatalog", function (root) {
         barcodePdfBtn.addEventListener("click", () => {
             if (!activeBarcodeProduct) return;
             openPrintWindow(activeBarcodeProduct, "pdf");
+        });
+    }
+    if (pricingModal) {
+        pricingModal.addEventListener("click", (event) => {
+            const target = event.target;
+            if (!(target instanceof HTMLElement)) return;
+            if (target.closest("[data-action=\"close-pricing-modal\"]")) {
+                closePricingModal();
+            }
+        });
+    }
+    if (pricingForm instanceof HTMLFormElement) {
+        pricingForm.addEventListener("submit", (event) => {
+            event.preventDefault();
+            const formData = new FormData(pricingForm);
+            const sellingPrice = formData.get("sellingPrice") ? Number(formData.get("sellingPrice")) : null;
+            const costPrice = formData.get("costPrice") ? Number(formData.get("costPrice")) : null;
+            const qty = formData.get("qty") ? Number(formData.get("qty")) : null;
+            if (!activePricingMedicineId) {
+                if (window.ToastService && typeof window.ToastService.show === "function") {
+                    window.ToastService.show("Unable to locate selected product.", "error");
+                }
+                return;
+            }
+
+            fetch(`/api/products/${activePricingMedicineId}/pricing`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ sellingPrice, costPrice, qty })
+            })
+                .then((response) => response.json().then((data) => ({ ok: response.ok, data })))
+                .then(({ ok, data }) => {
+                    if (!ok) {
+                        throw new Error(data?.message || "Unable to save pricing.");
+                    }
+                    closePricingModal();
+                    loadCatalog();
+                    if (window.ToastService && typeof window.ToastService.show === "function") {
+                        window.ToastService.show("Pricing saved successfully.", "success");
+                    }
+                })
+                .catch((error) => {
+                    if (window.ToastService && typeof window.ToastService.show === "function") {
+                        window.ToastService.show(error.message || "Unable to save pricing.", "error");
+                    }
+                });
         });
     }
     loadCatalog();

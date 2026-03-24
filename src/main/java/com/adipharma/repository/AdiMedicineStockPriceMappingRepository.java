@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import java.util.List;
 import java.util.Optional;
+import java.math.BigDecimal;
 
 public interface AdiMedicineStockPriceMappingRepository extends JpaRepository<AdiMedicineStockPriceMapping, Long> {
     @EntityGraph(attributePaths = { "medicine", "medicine.generic", "medicine.manufacturer" })
@@ -53,4 +54,17 @@ public interface AdiMedicineStockPriceMappingRepository extends JpaRepository<Ad
     @EntityGraph(attributePaths = { "medicine", "medicine.generic", "medicine.manufacturer" })
     @Query("select m from AdiMedicineStockPriceMapping m where m.id = :id")
     Optional<AdiMedicineStockPriceMapping> findByIdWithMedicine(@Param("id") Long id);
+
+    @EntityGraph(attributePaths = { "medicine" })
+    @Query("""
+        select m from AdiMedicineStockPriceMapping m
+        where m.medicine.id = :medicineId
+          and m.price = :price
+          and m.costPrice = :costPrice
+        """)
+    Optional<AdiMedicineStockPriceMapping> findByMedicineAndPrices(
+        @Param("medicineId") Long medicineId,
+        @Param("price") BigDecimal price,
+        @Param("costPrice") BigDecimal costPrice
+    );
 }
