@@ -195,6 +195,7 @@ public class MedicineStockPriceMappingService {
         response.put("sellingPrice", mapping.getPrice());
         response.put("costPrice", mapping.getCostPrice());
         response.put("qty", mapping.getQty());
+        response.put("expireDate", mapping.getExpireDate());
         response.put("requiresRx", details != null ? details.getRequiresRx() : null);
         response.put("trackExpiry", details != null ? details.getTrackExpiry() : null);
         return response;
@@ -389,6 +390,99 @@ public class MedicineStockPriceMappingService {
         return response;
     }
 
+    public Map<String, Object> getStockList(
+        String query,
+        String status,
+        int page,
+        int size,
+        String sortKey,
+        String sortDir,
+        int lowStockLimit,
+        int expiringDays
+    ) {
+        String trimmedQuery = query == null ? "" : query.trim();
+        int safePage = Math.max(page, 0);
+        int safeSize = Math.max(1, Math.min(size, MAX_CATALOG_PAGE_SIZE));
+
+        PageRequest pageRequest = PageRequest.of(0, 5000, Sort.by("id").descending());
+        var pageResult = repository.searchAlerts(trimmedQuery, pageRequest);
+
+        java.time.LocalDate thresholdDate = java.time.LocalDate.now().plusDays(expiringDays);
+
+        List<Map<String, Object>> filtered = pageResult.getContent().stream()
+            .map(mapping -> {
+                AdiMedicineDetails details = mapping.getMedicine();
+                Map<String, Object> row = new HashMap<>();
+                row.put("id", mapping.getId());
+                row.put("code", details != null ? details.getBrandCode() : null);
+                row.put("name", details != null ? details.getBrandName() : null);
+                row.put("category", details != null ? details.getType() : null);
+                row.put("qty", mapping.getQty());
+                row.put("price", mapping.getPrice());
+                row.put("costPrice", mapping.getCostPrice());
+                row.put("expireDate", mapping.getExpireDate());
+                String statusLabel = buildAlertStatus(mapping, lowStockLimit, thresholdDate);
+                row.put("status", statusLabel);
+                return row;
+            })
+            .filter(row -> filterByStockStatus(row, status))
+            .collect(Collectors.toList());
+
+        String sortField = switch (sortKey == null ? "" : sortKey.toLowerCase()) {
+            case "name" -> "name";
+            case "qty" -> "qty";
+            case "expiry" -> "expireDate";
+            case "price" -> "price";
+            default -> "code";
+        };
+        boolean desc = "desc".equalsIgnoreCase(sortDir);
+        filtered.sort((a, b) -> {
+            Object av = a.get(sortField);
+            Object bv = b.get(sortField);
+            int cmp;
+            if (av == null && bv == null) {
+                cmp = 0;
+            } else if (av == null) {
+                cmp = 1;
+            } else if (bv == null) {
+                cmp = -1;
+            } else if (av instanceof Comparable && bv instanceof Comparable) {
+                cmp = ((Comparable) av).compareTo(bv);
+            } else {
+                cmp = String.valueOf(av).compareTo(String.valueOf(bv));
+            }
+            return desc ? -cmp : cmp;
+        });
+
+        int total = filtered.size();
+        int from = Math.min(safePage * safeSize, total);
+        int to = Math.min(from + safeSize, total);
+        List<Map<String, Object>> items = filtered.subList(from, to);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("items", items);
+        response.put("page", safePage);
+        response.put("size", safeSize);
+        response.put("total", total);
+        response.put("totalPages", (int) Math.ceil(total / (double) safeSize));
+        return response;
+    }
+
+    public Map<String, Object> getStockSummary(int lowStockLimit, int expiringDays) {
+        java.time.LocalDate thresholdDate = java.time.LocalDate.now().plusDays(expiringDays);
+        long total = repository.count();
+        long lowStock = repository.countLowStock(lowStockLimit);
+        long expiring = repository.countExpiringSoon(thresholdDate);
+        long outOfStock = repository.countOutOfStock();
+        Map<String, Object> response = new HashMap<>();
+        response.put("total", total);
+        response.put("lowStock", lowStock);
+        response.put("expiringSoon", expiring);
+        response.put("outOfStock", outOfStock);
+        response.put("expiringDays", expiringDays);
+        return response;
+    }
+
     private static String buildAlertStatus(
         AdiMedicineStockPriceMapping mapping,
         int lowStockLimit,
@@ -417,6 +511,20 @@ public class MedicineStockPriceMappingService {
             case "expiring" -> "expiring_soon".equals(status);
             case "out" -> "out_of_stock".equals(status);
             default -> !"normal".equals(status);
+        };
+    }
+
+    private static boolean filterByStockStatus(Map<String, Object> row, String status) {
+        if (status == null || status.isBlank() || "all".equalsIgnoreCase(status)) {
+            return true;
+        }
+        String value = String.valueOf(row.get("status"));
+        return switch (status.toLowerCase()) {
+            case "low" -> "low_stock".equals(value);
+            case "expiring" -> "expiring_soon".equals(value);
+            case "out" -> "out_of_stock".equals(value);
+            case "normal" -> "normal".equals(value);
+            default -> true;
         };
     }
 

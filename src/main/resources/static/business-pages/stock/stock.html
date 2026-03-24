@@ -1,0 +1,149 @@
+<section class="stock-page">
+    <div class="stock-header">
+        <div>
+            <h1>Stock Management</h1>
+            <p>Track inventory levels, expiries, and stock value at a glance</p>
+        </div>
+        <div class="stock-search">
+            <span class="material-symbols-outlined">search</span>
+            <input id="stock-search" type="text" placeholder="Search by medicine code or name..." />
+        </div>
+    </div>
+
+    <div class="stock-toolbar">
+        <div class="stock-toolbar-left">
+            <label for="stock-sort">Sort by:</label>
+            <select id="stock-sort">
+                <option value="code" selected>Medicine Code</option>
+                <option value="name">Name</option>
+                <option value="qty">Quantity</option>
+                <option value="expiry">Expiry Date</option>
+                <option value="price">Selling Price</option>
+            </select>
+            <button id="stock-sort-dir" class="stock-sort-btn" type="button" aria-label="Sort ascending">
+                <span class="material-symbols-outlined">north</span>
+            </button>
+
+            <label for="stock-status">Status:</label>
+            <select id="stock-status">
+                <option value="all" selected>All</option>
+                <option value="low">Low Stock</option>
+                <option value="expiring">Expiring Soon</option>
+                <option value="out">Out of Stock</option>
+                <option value="normal">In Stock</option>
+            </select>
+
+            <label for="stock-page-size">Per page:</label>
+            <select id="stock-page-size">
+                <option value="10">10</option>
+                <option value="20" selected>20</option>
+                <option value="50">50</option>
+            </select>
+        </div>
+        <div class="stock-toolbar-right" id="stock-result-count">Showing 0 to 0 of 0 results</div>
+    </div>
+
+    <div class="stock-cards">
+        <div class="stock-card is-highlight">
+            <div class="stock-card-header">
+                <span>Total Items</span>
+                <span class="material-symbols-outlined">inventory_2</span>
+            </div>
+            <div class="stock-card-value" id="stock-total-items">0</div>
+            <div class="stock-card-subtitle">All stock entries</div>
+        </div>
+        <div class="stock-card">
+            <div class="stock-card-header">
+                <span>Low Stock</span>
+                <span class="material-symbols-outlined">warning</span>
+            </div>
+            <div class="stock-card-value stock-card-warning" id="stock-low-items">0</div>
+            <div class="stock-card-subtitle">Qty ≤ 10</div>
+        </div>
+        <div class="stock-card">
+            <div class="stock-card-header">
+                <span>Expiring Soon</span>
+                <span class="material-symbols-outlined">schedule</span>
+            </div>
+            <div class="stock-card-value stock-card-info" id="stock-expiring-items">0</div>
+            <div class="stock-card-subtitle" id="stock-expiring-label">Within 30 days</div>
+        </div>
+        <div class="stock-card">
+            <div class="stock-card-header">
+                <span>Out of Stock</span>
+                <span class="material-symbols-outlined">remove_shopping_cart</span>
+            </div>
+            <div class="stock-card-value stock-card-danger" id="stock-out-items">0</div>
+            <div class="stock-card-subtitle">Qty = 0</div>
+        </div>
+    </div>
+
+    <div class="stock-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Medicine Code</th>
+                    <th>Name</th>
+                    <th>Category</th>
+                    <th>Qty</th>
+                    <th>Selling Price</th>
+                    <th>Cost Price</th>
+                    <th>Expiry Date</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="stock-table-body">
+                <tr>
+                    <td colspan="9" class="stock-empty">Loading stock...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="stock-pagination" id="stock-pagination"></div>
+</section>
+
+<div class="stock-modal" id="stock-modal" aria-hidden="true">
+    <div class="stock-modal-backdrop" data-action="close-stock-modal"></div>
+    <div class="stock-modal-card" role="dialog" aria-modal="true">
+        <div class="stock-modal-header">
+            <div>
+                <h2>Stock Details</h2>
+                <p id="stock-modal-title"></p>
+            </div>
+            <button type="button" class="stock-modal-close" data-action="close-stock-modal" aria-label="Close">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        <div class="stock-modal-grid">
+            <div>
+                <span>Medicine Code</span>
+                <strong id="stock-detail-code">—</strong>
+            </div>
+            <div>
+                <span>Category</span>
+                <strong id="stock-detail-category">—</strong>
+            </div>
+            <div>
+                <span>Quantity</span>
+                <strong id="stock-detail-qty">0</strong>
+            </div>
+            <div>
+                <span>Selling Price</span>
+                <strong id="stock-detail-price">৳0.00</strong>
+            </div>
+            <div>
+                <span>Cost Price</span>
+                <strong id="stock-detail-cost">৳0.00</strong>
+            </div>
+            <div>
+                <span>Expiry Date</span>
+                <strong id="stock-detail-expiry">—</strong>
+            </div>
+        </div>
+        <div class="stock-modal-actions">
+            <button type="button" class="stock-modal-outline" data-action="close-stock-modal">Close</button>
+        </div>
+    </div>
+</div>
