@@ -1,0 +1,102 @@
+<section class="stock-alerts-page">
+    <div class="stock-alerts-header">
+        <div>
+            <h1>Stock Alerts</h1>
+            <p>Monitor inventory status and take action</p>
+        </div>
+        <div class="stock-alerts-search">
+            <span class="material-symbols-outlined">search</span>
+            <input id="stock-alerts-search" type="text" placeholder="Search alerts..." />
+        </div>
+    </div>
+
+    <div class="stock-alerts-toolbar">
+        <div class="stock-alerts-toolbar-left">
+            <label for="stock-alerts-sort">Sort by:</label>
+            <select id="stock-alerts-sort">
+                <option value="sku" selected>Medicine Code</option>
+                <option value="quantity">Quantity</option>
+                <option value="expiry">Expiry Date</option>
+            </select>
+            <button id="stock-alerts-sort-dir" type="button" class="stock-sort-btn" aria-label="Sort ascending">
+                <span class="material-symbols-outlined">north</span>
+            </button>
+
+            <label for="stock-alerts-filter">Filter:</label>
+            <select id="stock-alerts-filter">
+                <option value="all" selected>All Alerts</option>
+                <option value="low">Low Stock</option>
+                <option value="expiring">Expiring Soon</option>
+                <option value="out">Out of Stock</option>
+            </select>
+
+            <label for="stock-alerts-page-size">Per page:</label>
+            <select id="stock-alerts-page-size">
+                <option value="10">10</option>
+                <option value="15" selected>15</option>
+                <option value="20">20</option>
+            </select>
+        </div>
+        <div class="stock-alerts-toolbar-right" id="stock-alerts-result-count">Showing 0 to 0 of 0 results</div>
+    </div>
+
+    <div class="stock-alerts-cards">
+        <div class="stock-card">
+            <div class="stock-card-header">
+                <span class="stock-card-title">Low Stock Items</span>
+                <span class="stock-card-icon stock-card-icon-warning">
+                    <span class="material-symbols-outlined">warning</span>
+                </span>
+            </div>
+            <div class="stock-card-value" id="stock-summary-low">0</div>
+            <div class="stock-card-subtitle">Items below reorder level</div>
+        </div>
+        <div class="stock-card">
+            <div class="stock-card-header">
+                <span class="stock-card-title">Expiring Soon</span>
+                <span class="stock-card-icon stock-card-icon-info">
+                    <span class="material-symbols-outlined">schedule</span>
+                </span>
+            </div>
+            <div class="stock-card-value" id="stock-summary-expiring">0</div>
+            <div class="stock-card-subtitle" id="stock-summary-expiring-label">Items expiring within 30 days</div>
+        </div>
+        <div class="stock-card">
+            <div class="stock-card-header">
+                <span class="stock-card-title">Out of Stock</span>
+                <span class="stock-card-icon stock-card-icon-danger">
+                    <span class="material-symbols-outlined">remove_shopping_cart</span>
+                </span>
+            </div>
+            <div class="stock-card-value" id="stock-summary-out">0</div>
+            <div class="stock-card-subtitle">Items with zero quantity</div>
+        </div>
+    </div>
+
+    <div class="stock-alerts-tabs">
+        <button class="stock-tab active" data-tab="low">Low Stock</button>
+        <button class="stock-tab" data-tab="expiring">Expiring Soon</button>
+        <button class="stock-tab" data-tab="out">Out of Stock</button>
+    </div>
+
+    <div class="stock-alerts-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Medicine Code</th>
+                    <th>Name</th>
+                    <th>Quantity</th>
+                    <th>Expiry Date</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="stock-alerts-body">
+                <tr>
+                    <td colspan="5" class="stock-empty">Loading alerts...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="stock-alerts-pagination" id="stock-alerts-pagination"></div>
+</section>

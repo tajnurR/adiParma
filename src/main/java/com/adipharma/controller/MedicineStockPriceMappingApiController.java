@@ -147,6 +147,23 @@ public class MedicineStockPriceMappingApiController {
         }
     }
 
+    @GetMapping("stock-alerts")
+    public Map<String, Object> getStockAlerts(
+        @RequestParam(name = "q", required = false, defaultValue = "") String query,
+        @RequestParam(name = "type", required = false, defaultValue = "all") String type,
+        @RequestParam(name = "page", required = false, defaultValue = "0") int page,
+        @RequestParam(name = "size", required = false, defaultValue = "15") int size,
+        @RequestParam(name = "sort", required = false, defaultValue = "sku") String sort,
+        @RequestParam(name = "dir", required = false, defaultValue = "asc") String dir
+    ) {
+        return service.getStockAlerts(query, type, page, size, sort, dir, 10, 30);
+    }
+
+    @GetMapping("stock-alerts/summary")
+    public Map<String, Object> getStockAlertSummary() {
+        return service.getStockAlertSummary(10, 30);
+    }
+
     public static class CreateProductRequest {
         public String name;
         public String code;

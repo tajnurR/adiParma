@@ -67,4 +67,34 @@ public interface AdiMedicineStockPriceMappingRepository extends JpaRepository<Ad
         @Param("price") BigDecimal price,
         @Param("costPrice") BigDecimal costPrice
     );
+
+    @EntityGraph(attributePaths = { "medicine", "medicine.generic", "medicine.manufacturer" })
+    @Query("""
+        select m from AdiMedicineStockPriceMapping m
+        join m.medicine med
+        where (:query = '' or lower(med.brandCode) like lower(concat('%', :query, '%'))
+           or lower(med.brandName) like lower(concat('%', :query, '%')))
+        """)
+    Page<AdiMedicineStockPriceMapping> searchAlerts(
+        @Param("query") String query,
+        Pageable pageable
+    );
+
+    @Query("""
+        select count(m) from AdiMedicineStockPriceMapping m
+        where m.qty = 0
+        """)
+    long countOutOfStock();
+
+    @Query("""
+        select count(m) from AdiMedicineStockPriceMapping m
+        where m.qty > 0 and m.qty <= :lowStockLimit
+        """)
+    long countLowStock(@Param("lowStockLimit") int lowStockLimit);
+
+    @Query("""
+        select count(m) from AdiMedicineStockPriceMapping m
+        where m.expireDate is not null and m.expireDate <= :threshold
+        """)
+    long countExpiringSoon(@Param("threshold") java.time.LocalDate threshold);
 }
