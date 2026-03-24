@@ -205,3 +205,80 @@
         </form>
     </div>
 </div>
+
+<div class="product-modal product-barcode-modal" id="product-barcode-modal" aria-hidden="true">
+    <div class="product-modal-backdrop" data-action="close-barcode-modal"></div>
+    <div class="product-modal-card product-barcode-card" role="dialog" aria-modal="true" aria-labelledby="barcode-modal-title">
+        <div class="product-modal-header">
+            <h2 class="product-modal-title" id="barcode-modal-title">Product Barcode</h2>
+            <button type="button" class="product-modal-close" data-action="close-barcode-modal" aria-label="Close">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        <div class="product-barcode-body">
+            <div class="product-barcode-preview">
+                <div class="product-barcode-svg" id="barcode-preview-svg"></div>
+                <div class="product-barcode-code" id="barcode-preview-code"></div>
+            </div>
+
+            <div class="product-barcode-section">
+                <div class="product-barcode-section-title">Print Configuration</div>
+
+                <label class="product-modal-field">
+                    <span>Barcode Size</span>
+                    <select id="barcode-size">
+                        <option value="small">Small (30mm)</option>
+                        <option value="medium" selected>Medium (40mm)</option>
+                        <option value="large">Large (50mm)</option>
+                        <option value="xlarge">Extra Large (60mm)</option>
+                    </select>
+                </label>
+
+                <div class="product-barcode-radio-group">
+                    <div class="product-barcode-section-title">Printer Type</div>
+                    <label class="product-radio-card">
+                        <input type="radio" name="barcode-printer" value="laser" checked />
+                        <span>Laser/Inkjet Printer</span>
+                    </label>
+                    <label class="product-radio-card">
+                        <input type="radio" name="barcode-printer" value="barcode" />
+                        <span>Barcode Printer</span>
+                    </label>
+                </div>
+
+                <label class="product-modal-field">
+                    <span>Layout Options</span>
+                    <select id="barcode-layout">
+                        <option value="custom">Custom Quantity</option>
+                        <option value="a4-4">A4 - 4 Labels per Page</option>
+                        <option value="a4-8" selected>A4 - 8 Labels per Page</option>
+                        <option value="a4-16">A4 - 16 Labels per Page</option>
+                        <option value="a4-32">A4 - 32 Labels per Page</option>
+                    </select>
+                </label>
+
+                <label class="product-modal-field" id="barcode-quantity-field">
+                    <span>Print Quantity</span>
+                    <select id="barcode-quantity"></select>
+                </label>
+
+                <div class="product-barcode-section-title">Label Content</div>
+                <label class="product-checkbox-card">
+                    <input type="checkbox" id="barcode-show-code" />
+                    <span>Show Code</span>
+                </label>
+            </div>
+
+            <div class="product-modal-actions">
+                <button type="button" class="product-modal-submit" id="barcode-print-btn">
+                    <span class="material-symbols-outlined">print</span>
+                    Print Label
+                </button>
+                <button type="button" class="product-modal-outline" id="barcode-pdf-btn">
+                    <span class="material-symbols-outlined">download</span>
+                    Download PDF
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

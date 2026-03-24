@@ -11,8 +11,20 @@ window.BusinessPages.register("productCatalog", function (root) {
     const addBtn = root.querySelector(".product-add-btn");
     const modal = root.querySelector("#product-modal");
     const modalForm = root.querySelector("#product-modal-form");
+    const barcodeModal = root.querySelector("#product-barcode-modal");
+    const barcodePreviewSvg = root.querySelector("#barcode-preview-svg");
+    const barcodePreviewCode = root.querySelector("#barcode-preview-code");
+    const barcodeSizeSelect = root.querySelector("#barcode-size");
+    const barcodeLayoutSelect = root.querySelector("#barcode-layout");
+    const barcodeQuantitySelect = root.querySelector("#barcode-quantity");
+    const barcodeQuantityField = root.querySelector("#barcode-quantity-field");
+    const barcodeShowCode = root.querySelector("#barcode-show-code");
+    const barcodePrintBtn = root.querySelector("#barcode-print-btn");
+    const barcodePdfBtn = root.querySelector("#barcode-pdf-btn");
 
     if (!tableBody) return root;
+
+    let activeBarcodeProduct = null;
 
     const state = {
         query: "",
@@ -118,11 +130,14 @@ window.BusinessPages.register("productCatalog", function (root) {
         );
     }
 
+    const catalogCache = new Map();
+
     function renderRows(items) {
         if (!items || items.length === 0) {
             setEmpty();
             return;
         }
+        catalogCache.clear();
         tableBody.innerHTML = items
             .map((item) => {
                 const medicine = item.medicine || {};
@@ -136,6 +151,12 @@ window.BusinessPages.register("productCatalog", function (root) {
                 const category = getCategoryLabel(item);
                 const price = formatMoney(item.price);
                 const rxLabel = getRxLabel(item);
+                catalogCache.set(String(item.id), {
+                    id: item.id,
+                    name,
+                    code: sku,
+                    price: Number(item.price || 0)
+                });
                 return `
                     <tr data-id="${item.id}">
                         <td>
@@ -149,8 +170,8 @@ window.BusinessPages.register("productCatalog", function (root) {
                         <td>${rxLabel}</td>
                         <td>
                             <div class="product-actions">
-                                <button class="product-action-btn product-action-analytics" type="button" data-action="analytics" aria-label="Analytics">
-                                    <span class="material-symbols-outlined">bar_chart</span>
+                                <button class="product-action-btn product-action-analytics" type="button" data-action="barcode" aria-label="Barcode">
+                                    <span class="material-symbols-outlined">barcode</span>
                                 </button>
                                 <button class="product-action-btn product-action-edit" type="button" data-action="edit" aria-label="Edit">
                                     <span class="material-symbols-outlined">edit</span>
@@ -164,6 +185,192 @@ window.BusinessPages.register("productCatalog", function (root) {
                 `;
             })
             .join("");
+    }
+
+    function ensureBarcodeLib() {
+        if (window.JsBarcode) return Promise.resolve();
+        return new Promise((resolve, reject) => {
+            const existing = document.getElementById("barcode-lib");
+            if (existing) {
+                existing.addEventListener("load", () => resolve());
+                existing.addEventListener("error", () => reject(new Error("Failed to load barcode library")));
+                return;
+            }
+            const script = document.createElement("script");
+            script.id = "barcode-lib";
+            script.src = "https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js";
+            script.onload = () => resolve();
+            script.onerror = () => reject(new Error("Failed to load barcode library"));
+            document.body.appendChild(script);
+        });
+    }
+
+    function buildBarcodeSvg(code, sizeKey) {
+        const sizeMap = {
+            small: { width: 1.2, height: 40 },
+            medium: { width: 1.6, height: 48 },
+            large: { width: 2, height: 56 },
+            xlarge: { width: 2.4, height: 64 }
+        };
+        const size = sizeMap[sizeKey] || sizeMap.medium;
+        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        window.JsBarcode(svg, code, {
+            format: "CODE128",
+            displayValue: false,
+            margin: 0,
+            width: size.width,
+            height: size.height
+        });
+        return svg;
+    }
+
+    function openBarcodeModal(product) {
+        if (!barcodeModal) return;
+        ensureBarcodeLib()
+            .then(() => {
+                activeBarcodeProduct = product;
+                if (barcodePreviewCode) {
+                    barcodePreviewCode.dataset.codeValue = product.code || "";
+                    barcodePreviewCode.textContent = barcodeShowCode?.checked ? product.code : "";
+                }
+                if (barcodePreviewSvg) {
+                    barcodePreviewSvg.innerHTML = "";
+                    const svg = buildBarcodeSvg(product.code, barcodeSizeSelect?.value || "medium");
+                    barcodePreviewSvg.appendChild(svg);
+                }
+                barcodeModal.classList.add("is-open");
+                barcodeModal.setAttribute("aria-hidden", "false");
+            })
+            .catch(() => {
+                if (window.ToastService && typeof window.ToastService.show === "function") {
+                    window.ToastService.show("Unable to load barcode preview.", "error");
+                }
+            });
+    }
+
+    function closeBarcodeModal() {
+        if (!barcodeModal) return;
+        barcodeModal.classList.remove("is-open");
+        barcodeModal.setAttribute("aria-hidden", "true");
+        activeBarcodeProduct = null;
+    }
+
+    function updateBarcodeQuantityVisibility() {
+        if (!barcodeLayoutSelect || !barcodeQuantityField) return;
+        const isCustom = barcodeLayoutSelect.value === "custom";
+        barcodeQuantityField.style.display = isCustom ? "block" : "none";
+    }
+
+    function updateBarcodePreviewCode() {
+        if (!barcodePreviewCode || !barcodeShowCode) return;
+        const activeCode = barcodeShowCode.checked ? (barcodePreviewCode.dataset.codeValue || "") : "";
+        barcodePreviewCode.textContent = activeCode;
+    }
+
+    function initBarcodeQuantityOptions() {
+        if (!barcodeQuantitySelect) return;
+        barcodeQuantitySelect.innerHTML = "";
+        const quantities = [1, 2, 3, 4, 5, 6, 8, 10, 12, 15, 20, 25, 30];
+        quantities.forEach((qty) => {
+            const option = document.createElement("option");
+            option.value = String(qty);
+            option.textContent = `${qty} labels`;
+            if (qty === 1) option.selected = true;
+            barcodeQuantitySelect.appendChild(option);
+        });
+    }
+
+    function buildLabelHtml(product, sizeKey, showCode) {
+        const svg = buildBarcodeSvg(product.code, sizeKey);
+        const codeLine = showCode ? `<div class="label-code">${product.code}</div>` : "";
+        return `
+            <div class="label-card">
+                <div class="label-barcode">${svg.outerHTML}</div>
+                ${codeLine}
+            </div>
+        `;
+    }
+
+    function buildPrintLayout(layoutKey) {
+        const layoutMap = {
+            "a4-4": { columns: 2, rows: 2 },
+            "a4-8": { columns: 4, rows: 2 },
+            "a4-16": { columns: 4, rows: 4 },
+            "a4-32": { columns: 4, rows: 8 }
+        };
+        return layoutMap[layoutKey] || layoutMap["a4-32"];
+    }
+
+    function openPrintWindow(product, action) {
+        const sizeKey = barcodeSizeSelect?.value || "medium";
+        const layoutKey = barcodeLayoutSelect?.value || "a4-32";
+        const showCode = barcodeShowCode?.checked ?? true;
+        let totalLabels = 1;
+        let columns = 1;
+        let rows = 1;
+        if (layoutKey === "custom") {
+            const parsed = Number(barcodeQuantitySelect?.value || 1);
+            totalLabels = Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
+        } else {
+            const layout = buildPrintLayout(layoutKey);
+            columns = layout.columns;
+            rows = layout.rows;
+            totalLabels = columns * rows;
+        }
+
+        const labelHtml = buildLabelHtml(product, sizeKey, showCode);
+        const labels = Array.from({ length: totalLabels }).map(() => labelHtml).join("");
+
+        const printWindow = window.open("", "_blank");
+        if (!printWindow) {
+            if (window.ToastService && typeof window.ToastService.show === "function") {
+                window.ToastService.show("Popup blocked. Allow popups to print.", "error");
+            }
+            return;
+        }
+
+        const gridStyle = layoutKey === "custom"
+            ? "display: flex; flex-wrap: wrap; gap: 12px;"
+            : `display: grid; grid-template-columns: repeat(${columns}, 1fr); gap: 12px;`;
+
+        printWindow.document.write(`
+            <html>
+            <head>
+                <title>Print Barcode Labels</title>
+                <style>
+                    @page { size: A4; margin: 12mm; }
+                    body { font-family: Inter, Arial, sans-serif; margin: 0; padding: 0; }
+                    .label-grid { ${gridStyle} }
+                    .label-card {
+                        border: 1px solid #e5e7eb;
+                        border-radius: 8px;
+                        padding: 8px;
+                        text-align: center;
+                        min-height: 90px;
+                    }
+                    .label-name { font-size: 10px; font-weight: 600; margin-bottom: 4px; }
+                    .label-code { font-size: 10px; color: #64748b; margin-top: 4px; }
+                    .label-barcode svg { width: 100%; height: auto; }
+                </style>
+            </head>
+            <body>
+                <div class="label-grid">${labels}</div>
+            </body>
+            </html>
+        `);
+        printWindow.document.close();
+        printWindow.focus();
+        printWindow.print();
+        if (action === "pdf") {
+            printWindow.close();
+        }
+    }
+
+    function updateBarcodeActionLabel() {
+        if (!barcodePrintBtn) return;
+        const layoutKey = barcodeLayoutSelect?.value || "a4-32";
+        const label = layoutKey === "custom" ? "Print Label" : `Print ${layoutKey.toUpperCase()}`;
+        barcodePrintBtn.innerHTML = `<span class="material-symbols-outlined">print</span>${label}`;
     }
 
     function fetchCatalog() {
@@ -340,6 +547,14 @@ window.BusinessPages.register("productCatalog", function (root) {
             const actionButton = target.closest(".product-action-btn");
             if (!actionButton) return;
             const action = actionButton.getAttribute("data-action");
+            if (action === "barcode") {
+                const row = actionButton.closest("tr");
+                const productId = row?.getAttribute("data-id");
+                if (productId && catalogCache.has(productId)) {
+                    openBarcodeModal(catalogCache.get(productId));
+                }
+                return;
+            }
             if (window.ToastService && typeof window.ToastService.show === "function") {
                 const label = action === "delete"
                     ? "Delete action is not available yet."
@@ -474,6 +689,49 @@ window.BusinessPages.register("productCatalog", function (root) {
             });
     }
     bindModalActions();
+    if (barcodeModal) {
+        initBarcodeQuantityOptions();
+        updateBarcodeQuantityVisibility();
+        updateBarcodeActionLabel();
+        barcodeModal.addEventListener("click", (event) => {
+            const target = event.target;
+            if (!(target instanceof HTMLElement)) return;
+            if (target.closest("[data-action=\"close-barcode-modal\"]")) {
+                closeBarcodeModal();
+            }
+        });
+    }
+    if (barcodeLayoutSelect) {
+        barcodeLayoutSelect.addEventListener("change", () => {
+            updateBarcodeQuantityVisibility();
+            updateBarcodeActionLabel();
+        });
+    }
+    if (barcodeSizeSelect) {
+        barcodeSizeSelect.addEventListener("change", () => {
+            const code = barcodePreviewCode?.dataset.codeValue || barcodePreviewCode?.textContent || "";
+            if (!code) return;
+            if (!barcodePreviewSvg || !window.JsBarcode) return;
+            barcodePreviewSvg.innerHTML = "";
+            const svg = buildBarcodeSvg(code, barcodeSizeSelect.value);
+            barcodePreviewSvg.appendChild(svg);
+        });
+    }
+    if (barcodeShowCode) {
+        barcodeShowCode.addEventListener("change", updateBarcodePreviewCode);
+    }
+    if (barcodePrintBtn) {
+        barcodePrintBtn.addEventListener("click", () => {
+            if (!activeBarcodeProduct) return;
+            openPrintWindow(activeBarcodeProduct, "print");
+        });
+    }
+    if (barcodePdfBtn) {
+        barcodePdfBtn.addEventListener("click", () => {
+            if (!activeBarcodeProduct) return;
+            openPrintWindow(activeBarcodeProduct, "pdf");
+        });
+    }
     loadCatalog();
     return root;
 });
