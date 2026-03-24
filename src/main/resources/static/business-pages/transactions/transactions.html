@@ -1,0 +1,120 @@
+<section class="transactions-page">
+    <div class="transactions-header">
+        <div>
+            <h1>Transaction History</h1>
+            <p>Review completed sales and inspect transaction details</p>
+        </div>
+        <div class="transactions-search">
+            <span class="material-symbols-outlined">search</span>
+            <input id="transactions-search" type="text" placeholder="Search by invoice or customer..." />
+        </div>
+    </div>
+
+    <div class="transactions-filters">
+        <div class="transactions-filter-group">
+            <label for="transactions-start">Start Date</label>
+            <input type="date" id="transactions-start" />
+        </div>
+        <div class="transactions-filter-group">
+            <label for="transactions-end">End Date</label>
+            <input type="date" id="transactions-end" />
+        </div>
+        <div class="transactions-filter-group">
+            <label for="transactions-payment">Payment</label>
+            <select id="transactions-payment">
+                <option value="">All</option>
+                <option value="1">Cash</option>
+                <option value="2">Card</option>
+                <option value="3">Mobile</option>
+                <option value="4">Other</option>
+            </select>
+        </div>
+        <div class="transactions-filter-group">
+            <label for="transactions-sort">Sort by</label>
+            <select id="transactions-sort">
+                <option value="date" selected>Date</option>
+                <option value="total">Total</option>
+            </select>
+        </div>
+        <div class="transactions-filter-group">
+            <label for="transactions-page-size">Per page</label>
+            <select id="transactions-page-size">
+                <option value="10">10</option>
+                <option value="15" selected>15</option>
+                <option value="20">20</option>
+            </select>
+        </div>
+        <div class="transactions-result" id="transactions-result-count">Showing 0 to 0 of 0 results</div>
+    </div>
+
+    <div class="transactions-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Invoice</th>
+                    <th>Date</th>
+                    <th>Customer</th>
+                    <th>Payment</th>
+                    <th>Total</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="transactions-body">
+                <tr>
+                    <td colspan="6" class="transactions-empty">Loading transactions...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="transactions-pagination" id="transactions-pagination"></div>
+</section>
+
+<div class="transactions-modal" id="transactions-modal" aria-hidden="true">
+    <div class="transactions-modal-backdrop" data-action="close-transaction-modal"></div>
+    <div class="transactions-modal-card" role="dialog" aria-modal="true">
+        <div class="transactions-modal-header">
+            <div>
+                <h2>Transaction Details</h2>
+                <p id="transaction-meta"></p>
+            </div>
+            <button type="button" class="transactions-modal-close" data-action="close-transaction-modal" aria-label="Close">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        <div class="transactions-modal-summary">
+            <div>
+                <span>Customer</span>
+                <strong id="transaction-customer">—</strong>
+            </div>
+            <div>
+                <span>Payment</span>
+                <strong id="transaction-payment">—</strong>
+            </div>
+            <div>
+                <span>Total</span>
+                <strong id="transaction-total">৳0.00</strong>
+            </div>
+        </div>
+        <div class="transactions-modal-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Code</th>
+                        <th>Qty</th>
+                        <th>Line Total</th>
+                    </tr>
+                </thead>
+                <tbody id="transaction-items"></tbody>
+            </table>
+        </div>
+        <div class="transactions-modal-actions">
+            <button type="button" class="transactions-modal-outline" data-action="close-transaction-modal">Close</button>
+            <button type="button" class="transactions-modal-primary" id="transaction-invoice-btn">
+                <span class="material-symbols-outlined">description</span>
+                View Invoice
+            </button>
+        </div>
+    </div>
+</div>

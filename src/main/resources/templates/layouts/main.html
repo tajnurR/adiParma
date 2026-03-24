@@ -67,6 +67,11 @@
                 html: "/business-pages/reports/reports.html",
                 css: "/business-pages/reports/reports.css",
                 js: "/business-pages/reports/reports.js"
+            },
+            transactions: {
+                html: "/business-pages/transactions/transactions.html",
+                css: "/business-pages/transactions/transactions.css",
+                js: "/business-pages/transactions/transactions.js"
             }
         };
         const commonAssets = {
@@ -153,6 +158,7 @@
             if (path === "/products") return "productCatalog";
             if (path === "/stock-alerts") return "stockAlerts";
             if (path === "/reports") return "reports";
+            if (path === "/transactions") return "transactions";
             return "overview";
         }
 
