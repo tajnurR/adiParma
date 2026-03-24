@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
 
 @RestController
 @RequestMapping("/api/")
@@ -66,6 +68,47 @@ public class MedicineStockPriceMappingApiController {
         }
         try {
             Map<String, Object> response = service.createProduct(
+                request.name,
+                request.code,
+                request.genericId,
+                request.manufacturerId,
+                request.category,
+                request.description,
+                request.sellingPrice,
+                request.costPrice,
+                request.qty,
+                request.requiresRx,
+                request.trackExpiry
+            );
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("message", ex.getMessage()));
+        }
+    }
+
+    @GetMapping("products/{id}")
+    public ResponseEntity<?> getProduct(@PathVariable("id") Long id) {
+        try {
+            return ResponseEntity.ok(service.getProductDetails(id));
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of("message", ex.getMessage()));
+        }
+    }
+
+    @PutMapping("products/{id}")
+    public ResponseEntity<?> updateProduct(
+        @PathVariable("id") Long id,
+        @RequestBody CreateProductRequest request
+    ) {
+        if (request == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("message", "product details are required"));
+        }
+        try {
+            Map<String, Object> response = service.updateProduct(
+                id,
                 request.name,
                 request.code,
                 request.genericId,

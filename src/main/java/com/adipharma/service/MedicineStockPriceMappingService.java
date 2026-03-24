@@ -177,6 +177,88 @@ public class MedicineStockPriceMappingService {
         return response;
     }
 
+    public Map<String, Object> getProductDetails(Long mappingId) {
+        AdiMedicineStockPriceMapping mapping = repository.findByIdWithMedicine(mappingId)
+            .orElseThrow(() -> new IllegalArgumentException("product not found"));
+        AdiMedicineDetails details = mapping.getMedicine();
+        AdiMedicineGeneric generic = details != null ? details.getGeneric() : null;
+        AdiMedicineManufacturals manufacturer = details != null ? details.getManufacturer() : null;
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("id", mapping.getId());
+        response.put("name", details != null ? details.getBrandName() : null);
+        response.put("code", details != null ? details.getBrandCode() : null);
+        response.put("category", details != null ? details.getType() : null);
+        response.put("description", details != null ? details.getDescription() : null);
+        response.put("genericId", generic != null ? generic.getId() : null);
+        response.put("manufacturerId", manufacturer != null ? manufacturer.getId() : null);
+        response.put("sellingPrice", mapping.getPrice());
+        response.put("costPrice", mapping.getCostPrice());
+        response.put("qty", mapping.getQty());
+        response.put("requiresRx", details != null ? details.getRequiresRx() : null);
+        response.put("trackExpiry", details != null ? details.getTrackExpiry() : null);
+        return response;
+    }
+
+    public Map<String, Object> updateProduct(
+        Long mappingId,
+        String name,
+        String code,
+        Long genericId,
+        Long manufacturerId,
+        String category,
+        String description,
+        BigDecimal sellingPrice,
+        BigDecimal costPrice,
+        Integer qty,
+        Boolean requiresRx,
+        Boolean trackExpiry
+    ) {
+        if (mappingId == null) {
+            throw new IllegalArgumentException("product id is required");
+        }
+        if (isBlank(name) || isBlank(code) || genericId == null || manufacturerId == null || isBlank(category)) {
+            throw new IllegalArgumentException("name, code, generic, manufacturer, and category are required");
+        }
+        if (!code.trim().matches("^M\\d{6}$")) {
+            throw new IllegalArgumentException("code must follow format M######");
+        }
+
+        AdiMedicineStockPriceMapping mapping = repository.findByIdWithMedicine(mappingId)
+            .orElseThrow(() -> new IllegalArgumentException("product not found"));
+        AdiMedicineDetails details = mapping.getMedicine();
+        if (details == null) {
+            throw new IllegalArgumentException("product details not found");
+        }
+        if (detailsRepository.existsByBrandCodeAndIdNot(code.trim(), details.getId())) {
+            throw new IllegalArgumentException("product code already exists");
+        }
+
+        AdiMedicineGeneric generic = genericRepository.findById(genericId)
+            .orElseThrow(() -> new IllegalArgumentException("generic not found"));
+        AdiMedicineManufacturals manufacturer = manufacturerRepository.findById(manufacturerId)
+            .orElseThrow(() -> new IllegalArgumentException("manufacturer not found"));
+
+        details.setBrandName(name.trim());
+        details.setBrandCode(code.trim());
+        details.setType(category.trim());
+        details.setDescription(isBlank(description) ? null : description.trim());
+        details.setGeneric(generic);
+        details.setManufacturer(manufacturer);
+        details.setRequiresRx(requiresRx != null && requiresRx);
+        details.setTrackExpiry(trackExpiry != null && trackExpiry);
+
+        detailsRepository.save(details);
+        AdiMedicineStockPriceMapping savedMapping = repository.save(mapping);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("id", savedMapping.getId());
+        response.put("medicineId", details.getId());
+        response.put("name", details.getBrandName());
+        response.put("code", details.getBrandCode());
+        return response;
+    }
+
     private static boolean isBlank(String value) {
         return value == null || value.trim().isEmpty();
     }

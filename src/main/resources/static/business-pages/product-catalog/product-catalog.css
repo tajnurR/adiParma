@@ -336,6 +336,13 @@
     color: #0f172a;
 }
 
+.product-input select {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 .product-input textarea {
     resize: vertical;
     min-height: 76px;
@@ -460,6 +467,9 @@
     font-size: 13px;
     background: #f3f4f6;
     color: #0f172a;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .product-barcode-section-title {

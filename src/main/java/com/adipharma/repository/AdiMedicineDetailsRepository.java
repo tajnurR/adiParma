@@ -5,4 +5,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface AdiMedicineDetailsRepository extends JpaRepository<AdiMedicineDetails, Long> {
     boolean existsByBrandCode(String brandCode);
+    boolean existsByBrandCodeAndIdNot(String brandCode, Long id);
 }

@@ -11,6 +11,9 @@ window.BusinessPages.register("productCatalog", function (root) {
     const addBtn = root.querySelector(".product-add-btn");
     const modal = root.querySelector("#product-modal");
     const modalForm = root.querySelector("#product-modal-form");
+    const modalTitle = root.querySelector("#product-modal-title");
+    const modalSubmit = modalForm ? modalForm.querySelector(".product-modal-submit") : null;
+    const pricingSection = root.querySelector("#product-pricing-section");
     const barcodeModal = root.querySelector("#product-barcode-modal");
     const barcodePreviewSvg = root.querySelector("#barcode-preview-svg");
     const barcodePreviewCode = root.querySelector("#barcode-preview-code");
@@ -36,6 +39,9 @@ window.BusinessPages.register("productCatalog", function (root) {
     };
 
     let searchTimer = null;
+    let editingProductId = null;
+    let modalOptionsPromise = null;
+    let updatePricingPreview = () => {};
 
     function formatMoney(value) {
         const numeric = Number(value || 0);
@@ -175,9 +181,6 @@ window.BusinessPages.register("productCatalog", function (root) {
                                 </button>
                                 <button class="product-action-btn product-action-edit" type="button" data-action="edit" aria-label="Edit">
                                     <span class="material-symbols-outlined">edit</span>
-                                </button>
-                                <button class="product-action-btn product-action-delete" type="button" data-action="delete" aria-label="Delete">
-                                    <span class="material-symbols-outlined">delete</span>
                                 </button>
                             </div>
                         </td>
@@ -427,8 +430,8 @@ window.BusinessPages.register("productCatalog", function (root) {
     }
 
     function loadSelectOptions(endpoint, selectEl, placeholder) {
-        if (!selectEl) return;
-        fetch(endpoint)
+        if (!selectEl) return Promise.resolve();
+        return fetch(endpoint)
             .then((response) => response.json())
             .then((data) => {
                 if (!Array.isArray(data)) return;
@@ -466,9 +469,121 @@ window.BusinessPages.register("productCatalog", function (root) {
         if (!modal) return;
         modal.classList.remove("is-open");
         modal.setAttribute("aria-hidden", "true");
-        if (modalForm instanceof HTMLFormElement) {
-            modalForm.reset();
+        resetProductForm();
+        editingProductId = null;
+        setModalMode("create");
+    }
+
+    function resetProductForm() {
+        if (!(modalForm instanceof HTMLFormElement)) return;
+        modalForm.reset();
+        const genericSelect = modalForm.querySelector("select[name=\"genericId\"]");
+        const manufacturerSelect = modalForm.querySelector("select[name=\"manufacturerId\"]");
+        const categorySelectModal = modalForm.querySelector("select[name=\"category\"]");
+        if (genericSelect) {
+            genericSelect.value = "";
+            if (genericSelect.options.length > 0) genericSelect.selectedIndex = 0;
         }
+        if (manufacturerSelect) {
+            manufacturerSelect.value = "";
+            if (manufacturerSelect.options.length > 0) manufacturerSelect.selectedIndex = 0;
+        }
+        if (categorySelectModal) {
+            categorySelectModal.value = "";
+            if (categorySelectModal.options.length > 0) categorySelectModal.selectedIndex = 0;
+        }
+        const requiresRxInput = modalForm.querySelector("input[name=\"requiresRx\"]");
+        const trackExpiryInput = modalForm.querySelector("input[name=\"trackExpiry\"]");
+        if (requiresRxInput) requiresRxInput.checked = false;
+        if (trackExpiryInput) trackExpiryInput.checked = true;
+        updatePricingPreview();
+    }
+
+    function ensureModalOptions() {
+        if (modalOptionsPromise) return modalOptionsPromise;
+        if (!modalForm) return Promise.resolve();
+        const genericSelect = modalForm.querySelector("select[name=\"genericId\"]");
+        const manufacturerSelect = modalForm.querySelector("select[name=\"manufacturerId\"]");
+        const categorySelectModal = modalForm.querySelector("select[name=\"category\"]");
+        modalOptionsPromise = Promise.all([
+            loadSelectOptions("/api/products/options/generics", genericSelect, "Select generic name"),
+            loadSelectOptions("/api/products/options/manufacturers", manufacturerSelect, "Select manufacturer"),
+            fetch("/api/products/catalog/categories")
+                .then((response) => response.json())
+                .then((data) => {
+                    if (!Array.isArray(data) || !categorySelectModal) return;
+                    categorySelectModal.innerHTML = "";
+                    const defaultOption = document.createElement("option");
+                    defaultOption.value = "";
+                    defaultOption.disabled = true;
+                    defaultOption.selected = true;
+                    defaultOption.textContent = "Select category";
+                    categorySelectModal.appendChild(defaultOption);
+                    data.forEach((category) => {
+                        const option = document.createElement("option");
+                        option.value = category;
+                        option.textContent = category;
+                        categorySelectModal.appendChild(option);
+                    });
+                })
+                .catch(() => {
+                    // Ignore modal category load errors.
+                })
+        ]);
+        return modalOptionsPromise;
+    }
+
+    function setModalMode(mode) {
+        if (modalTitle) {
+            modalTitle.textContent = mode === "edit" ? "Edit Product" : "Add New Product";
+        }
+        if (modalSubmit instanceof HTMLButtonElement) {
+            modalSubmit.textContent = mode === "edit" ? "Update Product" : "Create Product";
+        }
+        if (pricingSection) {
+            pricingSection.style.display = mode === "edit" ? "none" : "";
+        }
+    }
+
+    function fillProductForm(data) {
+        if (!modalForm || !data) return;
+        modalForm.querySelector("input[name=\"name\"]").value = data.name || "";
+        modalForm.querySelector("input[name=\"code\"]").value = data.code || "";
+        modalForm.querySelector("textarea[name=\"description\"]").value = data.description || "";
+        modalForm.querySelector("input[name=\"sellingPrice\"]").value = data.sellingPrice ?? 0;
+        modalForm.querySelector("input[name=\"costPrice\"]").value = data.costPrice ?? 0;
+        modalForm.querySelector("input[name=\"qty\"]").value = data.qty ?? 0;
+        modalForm.querySelector("input[name=\"requiresRx\"]").checked = Boolean(data.requiresRx);
+        modalForm.querySelector("input[name=\"trackExpiry\"]").checked = Boolean(data.trackExpiry);
+
+        const genericSelect = modalForm.querySelector("select[name=\"genericId\"]");
+        const manufacturerSelect = modalForm.querySelector("select[name=\"manufacturerId\"]");
+        const categorySelectModal = modalForm.querySelector("select[name=\"category\"]");
+        if (genericSelect) genericSelect.value = data.genericId ? String(data.genericId) : "";
+        if (manufacturerSelect) manufacturerSelect.value = data.manufacturerId ? String(data.manufacturerId) : "";
+        if (categorySelectModal) categorySelectModal.value = data.category || "";
+        updatePricingPreview();
+    }
+
+    function openEditModal(productId) {
+        if (!productId) return;
+        ensureModalOptions()
+            .then(() => fetch(`/api/products/${productId}`))
+            .then((response) => response.json().then((data) => ({ ok: response.ok, data })))
+            .then(({ ok, data }) => {
+                if (!ok) {
+                    throw new Error(data?.message || "Unable to load product.");
+                }
+                editingProductId = productId;
+                setModalMode("edit");
+                fillProductForm(data);
+                openModal();
+            })
+            .catch((error) => {
+                if (window.ToastService && typeof window.ToastService.show === "function") {
+                    window.ToastService.show(error.message || "Unable to load product.", "error");
+                }
+            });
     }
 
     function bindModalActions() {
@@ -555,11 +670,16 @@ window.BusinessPages.register("productCatalog", function (root) {
                 }
                 return;
             }
+            if (action === "edit") {
+                const row = actionButton.closest("tr");
+                const productId = row?.getAttribute("data-id");
+                if (productId) {
+                    openEditModal(productId);
+                }
+                return;
+            }
             if (window.ToastService && typeof window.ToastService.show === "function") {
-                const label = action === "delete"
-                    ? "Delete action is not available yet."
-                    : "This action is coming soon.";
-                window.ToastService.show(label, "info");
+                window.ToastService.show("This action is coming soon.", "info");
             }
         });
     }
@@ -574,7 +694,12 @@ window.BusinessPages.register("productCatalog", function (root) {
 
     if (addBtn) {
         addBtn.addEventListener("click", () => {
-            openModal();
+            ensureModalOptions().then(() => {
+                editingProductId = null;
+                setModalMode("create");
+                resetProductForm();
+                openModal();
+            });
         });
     }
 
@@ -585,7 +710,7 @@ window.BusinessPages.register("productCatalog", function (root) {
         const costPreview = modalForm.querySelector("#product-cost-preview");
         const profitPreview = modalForm.querySelector("#product-profit-margin");
 
-        function updatePricingPreview() {
+        updatePricingPreview = function () {
             const selling = Number(sellingInput?.value || 0);
             const cost = Number(costInput?.value || 0);
             if (sellingPreview) sellingPreview.textContent = `Preview: ৳${selling.toFixed(2)}`;
@@ -609,6 +734,7 @@ window.BusinessPages.register("productCatalog", function (root) {
 
         modalForm.addEventListener("submit", (event) => {
             event.preventDefault();
+            const isEdit = Boolean(editingProductId);
             const formData = new FormData(modalForm);
             const payload = {
                 name: formData.get("name") || "",
@@ -631,8 +757,11 @@ window.BusinessPages.register("productCatalog", function (root) {
                 return;
             }
 
-            fetch("/api/products", {
-                method: "POST",
+            const endpoint = editingProductId ? `/api/products/${editingProductId}` : "/api/products";
+            const method = editingProductId ? "PUT" : "POST";
+
+            fetch(endpoint, {
+                method,
                 headers: {
                     "Content-Type": "application/json"
                 },
@@ -646,7 +775,10 @@ window.BusinessPages.register("productCatalog", function (root) {
                     closeModal();
                     loadCatalog();
                     if (window.ToastService && typeof window.ToastService.show === "function") {
-                        window.ToastService.show("Product created successfully.", "success");
+                        window.ToastService.show(
+                            isEdit ? "Product updated successfully." : "Product created successfully.",
+                            "success"
+                        );
                     }
                 })
                 .catch((error) => {
@@ -660,34 +792,6 @@ window.BusinessPages.register("productCatalog", function (root) {
     }
 
     loadCategories();
-    if (modalForm) {
-        const genericSelect = modalForm.querySelector("select[name=\"genericId\"]");
-        const manufacturerSelect = modalForm.querySelector("select[name=\"manufacturerId\"]");
-        const categorySelectModal = modalForm.querySelector("select[name=\"category\"]");
-        loadSelectOptions("/api/products/options/generics", genericSelect, "Select generic name");
-        loadSelectOptions("/api/products/options/manufacturers", manufacturerSelect, "Select manufacturer");
-        fetch("/api/products/catalog/categories")
-            .then((response) => response.json())
-            .then((data) => {
-                if (!Array.isArray(data) || !categorySelectModal) return;
-                categorySelectModal.innerHTML = "";
-                const defaultOption = document.createElement("option");
-                defaultOption.value = "";
-                defaultOption.disabled = true;
-                defaultOption.selected = true;
-                defaultOption.textContent = "Select category";
-                categorySelectModal.appendChild(defaultOption);
-                data.forEach((category) => {
-                    const option = document.createElement("option");
-                    option.value = category;
-                    option.textContent = category;
-                    categorySelectModal.appendChild(option);
-                });
-            })
-            .catch(() => {
-                // Ignore modal category load errors.
-            });
-    }
     bindModalActions();
     if (barcodeModal) {
         initBarcodeQuantityOptions();

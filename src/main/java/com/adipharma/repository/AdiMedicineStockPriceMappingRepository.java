@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import java.util.List;
+import java.util.Optional;
 
 public interface AdiMedicineStockPriceMappingRepository extends JpaRepository<AdiMedicineStockPriceMapping, Long> {
     @EntityGraph(attributePaths = { "medicine", "medicine.generic", "medicine.manufacturer" })
@@ -48,4 +49,8 @@ public interface AdiMedicineStockPriceMappingRepository extends JpaRepository<Ad
         order by med.type
         """)
     List<String> findDistinctTypes();
+
+    @EntityGraph(attributePaths = { "medicine", "medicine.generic", "medicine.manufacturer" })
+    @Query("select m from AdiMedicineStockPriceMapping m where m.id = :id")
+    Optional<AdiMedicineStockPriceMapping> findByIdWithMedicine(@Param("id") Long id);
 }
