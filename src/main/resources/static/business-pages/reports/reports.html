@@ -1,0 +1,92 @@
+<section class="reports-page">
+    <div class="reports-header">
+        <h1>Analytics & Reports</h1>
+        <button class="reports-export-btn" type="button">
+            <span class="material-symbols-outlined">download</span>
+            Export Report
+        </button>
+    </div>
+
+    <div class="reports-card reports-date-card">
+        <div class="reports-card-title">
+            <span class="material-symbols-outlined">calendar_month</span>
+            Date Range Selection
+        </div>
+        <div class="reports-date-grid">
+            <label>
+                <span>Start Date</span>
+                <input type="date" id="reports-start-date" />
+            </label>
+            <label>
+                <span>End Date</span>
+                <input type="date" id="reports-end-date" />
+            </label>
+        </div>
+    </div>
+
+    <div class="reports-grid">
+        <div class="reports-card">
+            <div class="reports-card-title">
+                <span class="material-symbols-outlined">analytics</span>
+                Sales Summary
+            </div>
+            <div class="reports-metrics">
+                <div class="reports-metric is-highlight">
+                    <span>Total Sales</span>
+                    <strong id="reports-total-sales">0</strong>
+                </div>
+                <div class="reports-metric is-highlight">
+                    <span>Total Revenue</span>
+                    <strong id="reports-total-revenue">৳0.00</strong>
+                </div>
+                <div class="reports-metric is-highlight">
+                    <span>Avg. Order Value</span>
+                    <strong id="reports-avg-order">৳0.00</strong>
+                </div>
+            </div>
+
+            <div class="reports-table">
+                <div class="reports-table-title">Top Selling Products</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Qty Sold</th>
+                            <th>Revenue</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reports-top-products">
+                        <tr>
+                            <td colspan="3" class="reports-empty">Loading...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="reports-card">
+            <div class="reports-card-title">
+                <span class="material-symbols-outlined">inventory_2</span>
+                Inventory Summary
+            </div>
+            <div class="reports-metrics">
+                <div class="reports-metric is-highlight">
+                    <span>Total Products</span>
+                    <strong id="reports-total-products">0</strong>
+                </div>
+                <div class="reports-metric is-highlight">
+                    <span>Stock Value</span>
+                    <strong id="reports-stock-value">৳0.00</strong>
+                </div>
+                <div class="reports-metric">
+                    <span>Low Stock</span>
+                    <strong id="reports-low-stock">0</strong>
+                </div>
+                <div class="reports-metric">
+                    <span>Expiring Soon</span>
+                    <strong id="reports-expiring-soon">0</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

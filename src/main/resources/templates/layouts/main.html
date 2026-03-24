@@ -62,6 +62,11 @@
                 html: "/business-pages/stock-alerts/stock-alerts.html",
                 css: "/business-pages/stock-alerts/stock-alerts.css",
                 js: "/business-pages/stock-alerts/stock-alerts.js"
+            },
+            reports: {
+                html: "/business-pages/reports/reports.html",
+                css: "/business-pages/reports/reports.css",
+                js: "/business-pages/reports/reports.js"
             }
         };
         const commonAssets = {
@@ -147,6 +152,7 @@
             if (/^\/customers\/\d+\/sales$/.test(path)) return "customerSales";
             if (path === "/products") return "productCatalog";
             if (path === "/stock-alerts") return "stockAlerts";
+            if (path === "/reports") return "reports";
             return "overview";
         }
 

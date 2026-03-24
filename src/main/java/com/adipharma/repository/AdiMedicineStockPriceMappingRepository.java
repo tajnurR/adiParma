@@ -97,4 +97,9 @@ public interface AdiMedicineStockPriceMappingRepository extends JpaRepository<Ad
         where m.expireDate is not null and m.expireDate <= :threshold
         """)
     long countExpiringSoon(@Param("threshold") java.time.LocalDate threshold);
+
+    @Query("""
+        select coalesce(sum(m.price * m.qty), 0) from AdiMedicineStockPriceMapping m
+        """)
+    java.math.BigDecimal sumStockValue();
 }
