@@ -25,6 +25,17 @@ public interface AdiPointSalesMasterRepository extends JpaRepository<AdiPointSal
         """)
     BigDecimal sumRevenueBetween(@Param("start") java.time.LocalDateTime start, @Param("end") java.time.LocalDateTime end);
 
+    @Query("""
+        select coalesce(sum(m.totalAmount), 0) from AdiPointSalesMaster m
+        where m.paymentType = :paymentType
+          and m.saleDate >= :start and m.saleDate < :end
+        """)
+    BigDecimal sumRevenueByPaymentBetween(
+        @Param("paymentType") Integer paymentType,
+        @Param("start") java.time.LocalDateTime start,
+        @Param("end") java.time.LocalDateTime end
+    );
+
     @org.springframework.data.jpa.repository.EntityGraph(attributePaths = { "customer" })
     @Query("""
         select m from AdiPointSalesMaster m

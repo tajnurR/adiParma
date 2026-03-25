@@ -1,0 +1,72 @@
+<section class="settings-page">
+    <div class="settings-header">
+        <div>
+            <h1 class="settings-title">System Settings</h1>
+            <p class="settings-subtitle">Manage business day sessions and system preferences.</p>
+        </div>
+    </div>
+
+    <div class="settings-grid">
+        <div class="settings-card">
+            <div class="settings-card-header">
+                <h2>Day Management</h2>
+                <span class="settings-status" id="day-status-badge">Day Closed</span>
+            </div>
+
+            <div class="settings-day-meta">
+                <div>
+                    <span class="settings-meta-label">Business Date</span>
+                    <span id="day-business-date" class="settings-meta-value">—</span>
+                </div>
+                <div>
+                    <span class="settings-meta-label">Opened At</span>
+                    <span id="day-opened-at" class="settings-meta-value">—</span>
+                </div>
+                <div>
+                    <span class="settings-meta-label">Opened By</span>
+                    <span id="day-opened-by" class="settings-meta-value">—</span>
+                </div>
+                <div>
+                    <span class="settings-meta-label">Closed At</span>
+                    <span id="day-closed-at" class="settings-meta-value">—</span>
+                </div>
+                <div>
+                    <span class="settings-meta-label">Closed By</span>
+                    <span id="day-closed-by" class="settings-meta-value">—</span>
+                </div>
+            </div>
+
+            <div class="settings-actions">
+                <button id="day-open-btn" type="button" class="settings-btn settings-btn-primary">Open Day</button>
+                <button id="day-close-btn" type="button" class="settings-btn settings-btn-outline">Close Day</button>
+            </div>
+        </div>
+
+        <div class="settings-card">
+            <div class="settings-card-header">
+                <h2>Day Records</h2>
+                <span class="settings-helper">Recent day open/close entries</span>
+            </div>
+            <div class="settings-table-wrapper">
+                <table class="settings-table">
+                    <thead>
+                        <tr>
+                            <th>Business Date</th>
+                            <th>Status</th>
+                            <th>Opened At</th>
+                            <th>Opened By</th>
+                            <th>Closed At</th>
+                            <th>Closed By</th>
+                            <th>Total Sales</th>
+                        </tr>
+                    </thead>
+                    <tbody id="day-records-body">
+                        <tr>
+                            <td colspan="7" class="settings-empty">Loading records...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>

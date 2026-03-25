@@ -37,17 +37,20 @@ public class PointSalesService {
     private final AdiPointSalesDetailsRepository detailsRepository;
     private final AdiCustomarRepository customarRepository;
     private final AdiMedicineStockPriceMappingRepository stockRepository;
+    private final DayLedgerService dayLedgerService;
 
     public PointSalesService(
         AdiPointSalesMasterRepository masterRepository,
         AdiPointSalesDetailsRepository detailsRepository,
         AdiCustomarRepository customarRepository,
-        AdiMedicineStockPriceMappingRepository stockRepository
+        AdiMedicineStockPriceMappingRepository stockRepository,
+        DayLedgerService dayLedgerService
     ) {
         this.masterRepository = masterRepository;
         this.detailsRepository = detailsRepository;
         this.customarRepository = customarRepository;
         this.stockRepository = stockRepository;
+        this.dayLedgerService = dayLedgerService;
     }
 
     @Transactional
@@ -55,6 +58,7 @@ public class PointSalesService {
         if (request == null) {
             throw new IllegalArgumentException("Request body is required.");
         }
+        dayLedgerService.ensureDayOpen();
         if (request.customerId == null) {
             throw new IllegalArgumentException("Customer is required.");
         }

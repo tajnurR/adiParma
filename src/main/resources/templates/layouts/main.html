@@ -60,6 +60,7 @@
         function initHeaderStatus() {
             const dateEl = document.getElementById("app-current-date");
             const statusEl = document.getElementById("app-connection-status");
+            const dayStatusEl = document.getElementById("app-day-status");
             if (dateEl) {
                 const now = new Date();
                 dateEl.textContent = now.toLocaleDateString("en-GB", {
@@ -68,6 +69,17 @@
                     year: "numeric"
                 });
             }
+            const updateDayUi = (data) => {
+                const isOpen = Boolean(data && data.isOpen);
+                if (dayStatusEl) {
+                    dayStatusEl.textContent = isOpen ? "Day Open" : "Day Closed";
+                }
+                window.AppDayState = { isOpen };
+            };
+            const fetchDayStatus = () => fetch("/api/day/status")
+                .then((response) => response.json())
+                .then((data) => updateDayUi(data))
+                .catch(() => updateDayUi({ isOpen: false }));
             const updateConnection = () => {
                 if (!statusEl) return;
                 const icon = statusEl.querySelector(".material-symbols-outlined");
@@ -89,6 +101,7 @@
             updateConnection();
             window.addEventListener("online", updateConnection);
             window.addEventListener("offline", updateConnection);
+            fetchDayStatus();
         }
 
         initHeaderStatus();
@@ -137,6 +150,11 @@
                 html: "/business-pages/stock/stock.html",
                 css: "/business-pages/stock/stock.css",
                 js: "/business-pages/stock/stock.js"
+            },
+            settings: {
+                html: "/business-pages/settings/settings.html",
+                css: "/business-pages/settings/settings.css",
+                js: "/business-pages/settings/settings.js"
             }
         };
         const commonAssets = {
@@ -225,6 +243,7 @@
             if (path === "/reports") return "reports";
             if (path === "/transactions") return "transactions";
             if (path === "/stock") return "stock";
+            if (path === "/settings") return "settings";
             return "overview";
         }
 

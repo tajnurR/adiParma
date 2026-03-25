@@ -454,6 +454,12 @@ window.BusinessPages.register("pos", function (root) {
             }
             return null;
         }
+        if (window.AppDayState && window.AppDayState.isOpen === false) {
+            if (window.ToastService && typeof window.ToastService.show === "function") {
+                window.ToastService.show("Day is closed. Please open the day to start sales.", "error");
+            }
+            return null;
+        }
         if (cartItems.length === 0) {
             if (window.ToastService && typeof window.ToastService.show === "function") {
                 window.ToastService.show("Please add at least one item to the cart.", "error");
