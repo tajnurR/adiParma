@@ -490,6 +490,20 @@ window.BusinessPages.register("pos", function (root) {
 
         const total = items.reduce((sum, item) => sum + item.totalPrice, 0);
         const cashReceived = parseFloat(cashInput?.value || "0") || 0;
+        if (paymentType === paymentCodeMap.cash) {
+            if (!cashReceived || cashReceived <= 0) {
+                if (window.ToastService && typeof window.ToastService.show === "function") {
+                    window.ToastService.show("Please enter a valid cash received amount.", "error");
+                }
+                return null;
+            }
+            if (cashReceived < total) {
+                if (window.ToastService && typeof window.ToastService.show === "function") {
+                    window.ToastService.show("Cash received must be at least the total amount.", "error");
+                }
+                return null;
+            }
+        }
         const change = Math.max(cashReceived - total, 0);
 
         return {
