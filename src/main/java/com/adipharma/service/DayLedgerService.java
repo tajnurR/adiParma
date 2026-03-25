@@ -28,7 +28,7 @@ public class DayLedgerService {
 
     public Map<String, Object> getTodayStatus() {
         LocalDate today = LocalDate.now();
-        AdiDayLedger ledger = ledgerRepository.findByBusinessDate(today).orElse(null);
+        AdiDayLedger ledger = ledgerRepository.findTopByBusinessDateOrderByOpenedAtDesc(today).orElse(null);
         boolean open = ledger != null && STATUS_OPEN.equalsIgnoreCase(ledger.getStatus());
         Map<String, Object> response = new java.util.HashMap<>();
         response.put("date", today);
@@ -43,23 +43,10 @@ public class DayLedgerService {
 
     public Map<String, Object> openDay() {
         LocalDate today = LocalDate.now();
-        AdiDayLedger ledger = ledgerRepository.findByBusinessDate(today).orElse(null);
-        if (ledger != null) {
-            if (STATUS_OPEN.equalsIgnoreCase(ledger.getStatus())) {
-                return getTodayStatus();
-            }
-            ledger.setStatus(STATUS_OPEN);
-            ledger.setOpenedAt(LocalDateTime.now());
-            ledger.setOpenedBy("admin");
-            ledger.setClosedAt(null);
-            ledger.setClosedBy(null);
-            ledger.setTotalTransactions(0L);
-            ledger.setTotalSales(BigDecimal.ZERO);
-            ledger.setTotalCash(BigDecimal.ZERO);
-            ledger.setTotalCard(BigDecimal.ZERO);
-            ledger.setTotalMobile(BigDecimal.ZERO);
-            ledger.setTotalOther(BigDecimal.ZERO);
-            ledgerRepository.save(ledger);
+        AdiDayLedger existingOpen = ledgerRepository
+            .findTopByBusinessDateAndStatusOrderByOpenedAtDesc(today, STATUS_OPEN)
+            .orElse(null);
+        if (existingOpen != null) {
             return getTodayStatus();
         }
         AdiDayLedger created = AdiDayLedger.builder()
@@ -74,7 +61,8 @@ public class DayLedgerService {
 
     public Map<String, Object> closeDay() {
         LocalDate today = LocalDate.now();
-        AdiDayLedger ledger = ledgerRepository.findByBusinessDate(today)
+        AdiDayLedger ledger = ledgerRepository
+            .findTopByBusinessDateAndStatusOrderByOpenedAtDesc(today, STATUS_OPEN)
             .orElseThrow(() -> new IllegalArgumentException("Day is not open yet."));
         if (!STATUS_OPEN.equalsIgnoreCase(ledger.getStatus())) {
             throw new IllegalArgumentException("Day is already closed.");
@@ -110,7 +98,9 @@ public class DayLedgerService {
 
     public void ensureDayOpen() {
         LocalDate today = LocalDate.now();
-        AdiDayLedger ledger = ledgerRepository.findByBusinessDate(today).orElse(null);
+        AdiDayLedger ledger = ledgerRepository
+            .findTopByBusinessDateAndStatusOrderByOpenedAtDesc(today, STATUS_OPEN)
+            .orElse(null);
         if (ledger == null || !STATUS_OPEN.equalsIgnoreCase(ledger.getStatus())) {
             throw new IllegalArgumentException("Day is closed. Please open the day to start sales.");
         }

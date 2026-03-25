@@ -7,4 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface AdiDayLedgerRepository extends JpaRepository<AdiDayLedger, Long> {
     Optional<AdiDayLedger> findByBusinessDate(LocalDate businessDate);
+    Optional<AdiDayLedger> findTopByBusinessDateOrderByOpenedAtDesc(LocalDate businessDate);
+    Optional<AdiDayLedger> findTopByBusinessDateAndStatusOrderByOpenedAtDesc(LocalDate businessDate, String status);
 }

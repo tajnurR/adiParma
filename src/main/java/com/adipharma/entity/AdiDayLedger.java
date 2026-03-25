@@ -20,7 +20,7 @@ import lombok.Setter;
 @Table(
     name = "adi_day_ledger",
     indexes = {
-        @Index(name = "idx_adi_day_ledger_business_date", columnList = "business_date", unique = true)
+        @Index(name = "idx_adi_day_ledger_business_date", columnList = "business_date")
     }
 )
 @Getter
