@@ -11,7 +11,7 @@
 
     <style>
         html, body { height: 100%; }
-        body { font-family: "Inter", sans-serif; }
+        body { font-family: "Inter", sans-serif; margin: 0; }
         .material-symbols-outlined { font-variation-settings: "FILL" 0, "wght" 500, "GRAD" 0, "opsz" 24; }
         .menu-item.active {
             background: linear-gradient(90deg, #3b82f6, #1d4ed8);
@@ -24,7 +24,32 @@
 <div class="min-h-screen flex">
     <div th:replace="~{fragments/sidebar :: sidebar}"></div>
 
-    <main class="flex-1 p-6 flex">
+    <main class="flex-1 pr-6 pb-6 pt-0 flex flex-col gap-3">
+        <header class="border-b border-[#e5e7eb] bg-white px-6 py-2 shadow-sm flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+            <div class="flex flex-wrap items-center gap-2 md:gap-3">
+                <div class="flex items-center gap-2 rounded-lg border border-[#e5e7eb] bg-[#f8fafc] px-2.5 py-1.5 text-xs text-[#475569]">
+                    <span class="material-symbols-outlined text-[16px] text-[#2563eb]">calendar_month</span>
+                    <span id="app-current-date">—</span>
+                </div>
+                <div class="flex items-center gap-2 rounded-lg border border-[#e5e7eb] bg-[#f8fafc] px-2.5 py-1.5 text-xs text-[#475569]">
+                    <span class="material-symbols-outlined text-[16px] text-[#16a34a]">event_available</span>
+                    <span id="app-day-status" class="font-medium text-[#0f172a]">Day Open</span>
+                </div>
+                <div id="app-connection-status" class="flex items-center gap-2 rounded-lg border border-[#e5e7eb] bg-[#f8fafc] px-2.5 py-1.5 text-xs">
+                    <span class="material-symbols-outlined text-[16px]">cloud_done</span>
+                    <span class="font-medium">Online</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-full bg-gradient-to-br from-[#3b82f6] to-[#1d4ed8] text-white flex items-center justify-center text-xs font-semibold">
+                    AR
+                </div>
+                <div>
+                    <div class="text-sm font-semibold text-[#0f172a]">AdiPharma Admin</div>
+                    <div class="text-xs text-[#64748b]">System Operator</div>
+                </div>
+            </div>
+        </header>
         <div id="main-content" class="flex-1" th:insert="${content}"></div>
     </main>
 </div>
@@ -32,6 +57,41 @@
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script>
     $(function () {
+        function initHeaderStatus() {
+            const dateEl = document.getElementById("app-current-date");
+            const statusEl = document.getElementById("app-connection-status");
+            if (dateEl) {
+                const now = new Date();
+                dateEl.textContent = now.toLocaleDateString("en-GB", {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric"
+                });
+            }
+            const updateConnection = () => {
+                if (!statusEl) return;
+                const icon = statusEl.querySelector(".material-symbols-outlined");
+                const label = statusEl.querySelector("span:last-child");
+                const isOnline = navigator.onLine;
+                statusEl.classList.toggle("text-[#16a34a]", isOnline);
+                statusEl.classList.toggle("text-[#dc2626]", !isOnline);
+                statusEl.classList.toggle("bg-[#f0fdf4]", isOnline);
+                statusEl.classList.toggle("bg-[#fef2f2]", !isOnline);
+                if (icon) {
+                    icon.textContent = isOnline ? "cloud_done" : "cloud_off";
+                    icon.classList.toggle("text-[#16a34a]", isOnline);
+                    icon.classList.toggle("text-[#dc2626]", !isOnline);
+                }
+                if (label) {
+                    label.textContent = isOnline ? "Online" : "Offline";
+                }
+            };
+            updateConnection();
+            window.addEventListener("online", updateConnection);
+            window.addEventListener("offline", updateConnection);
+        }
+
+        initHeaderStatus();
         const pages = {
             overview: {
                 html: "/business-pages/overview/overview.html",
