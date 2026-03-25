@@ -61,11 +61,13 @@ public interface AdiMedicineStockPriceMappingRepository extends JpaRepository<Ad
         where m.medicine.id = :medicineId
           and m.price = :price
           and m.costPrice = :costPrice
+          and m.expireDate = :expireDate
         """)
     Optional<AdiMedicineStockPriceMapping> findByMedicineAndPrices(
         @Param("medicineId") Long medicineId,
         @Param("price") BigDecimal price,
-        @Param("costPrice") BigDecimal costPrice
+        @Param("costPrice") BigDecimal costPrice,
+        @Param("expireDate") java.time.LocalDate expireDate
     );
 
     @EntityGraph(attributePaths = { "medicine", "medicine.generic", "medicine.manufacturer" })

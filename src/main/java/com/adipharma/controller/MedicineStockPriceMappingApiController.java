@@ -77,6 +77,7 @@ public class MedicineStockPriceMappingApiController {
                 request.sellingPrice,
                 request.costPrice,
                 request.qty,
+                request.expireDate,
                 request.requiresRx,
                 request.trackExpiry
             );
@@ -139,7 +140,7 @@ public class MedicineStockPriceMappingApiController {
         }
         try {
             return ResponseEntity.ok(
-                service.addPricing(id, request.sellingPrice, request.costPrice, request.qty)
+                service.addPricing(id, request.sellingPrice, request.costPrice, request.qty, request.expireDate)
             );
         } catch (IllegalArgumentException ex) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -191,6 +192,7 @@ public class MedicineStockPriceMappingApiController {
         public BigDecimal sellingPrice;
         public BigDecimal costPrice;
         public Integer qty;
+        public java.time.LocalDate expireDate;
         public Boolean requiresRx;
         public Boolean trackExpiry;
     }
@@ -199,5 +201,6 @@ public class MedicineStockPriceMappingApiController {
         public BigDecimal sellingPrice;
         public BigDecimal costPrice;
         public Integer qty;
+        public java.time.LocalDate expireDate;
     }
 }

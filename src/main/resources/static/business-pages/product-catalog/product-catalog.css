@@ -314,6 +314,12 @@
     color: #475569;
 }
 
+.required-indicator {
+    color: #ef4444;
+    font-weight: 600;
+    margin-left: 2px;
+}
+
 .product-input {
     display: flex;
     align-items: center;
@@ -323,6 +329,15 @@
     padding: 8px 10px;
     background: #f8fafc;
     color: #94a3b8;
+}
+
+.product-input.is-invalid {
+    border-color: #ef4444;
+    background: #fef2f2;
+}
+
+.product-input.is-invalid .material-symbols-outlined {
+    color: #ef4444;
 }
 
 .product-input input,

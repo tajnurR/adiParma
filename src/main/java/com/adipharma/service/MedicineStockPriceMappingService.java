@@ -119,6 +119,7 @@ public class MedicineStockPriceMappingService {
         BigDecimal sellingPrice,
         BigDecimal costPrice,
         Integer qty,
+        java.time.LocalDate expireDate,
         Boolean requiresRx,
         Boolean trackExpiry
     ) {
@@ -131,11 +132,17 @@ public class MedicineStockPriceMappingService {
         if (sellingPrice == null || sellingPrice.compareTo(BigDecimal.ZERO) < 0) {
             throw new IllegalArgumentException("selling price must be a positive number");
         }
-        if (costPrice != null && costPrice.compareTo(BigDecimal.ZERO) < 0) {
+        if (costPrice == null) {
+            throw new IllegalArgumentException("cost price is required");
+        }
+        if (costPrice.compareTo(BigDecimal.ZERO) < 0) {
             throw new IllegalArgumentException("cost price must be a positive number");
         }
         if (qty == null || qty < 0) {
             throw new IllegalArgumentException("stock quantity must be zero or greater");
+        }
+        if (expireDate == null) {
+            throw new IllegalArgumentException("expire date is required");
         }
         if (detailsRepository.existsByBrandCode(code.trim())) {
             throw new IllegalArgumentException("product code already exists");
@@ -164,6 +171,7 @@ public class MedicineStockPriceMappingService {
             .price(sellingPrice)
             .costPrice(costPrice)
             .qty(qty)
+            .expireDate(expireDate)
             .addedBy("admin")
             .build();
 
@@ -264,7 +272,8 @@ public class MedicineStockPriceMappingService {
         Long medicineId,
         BigDecimal sellingPrice,
         BigDecimal costPrice,
-        Integer qty
+        Integer qty,
+        java.time.LocalDate expireDate
     ) {
         if (medicineId == null) {
             throw new IllegalArgumentException("medicine id is required");
@@ -278,21 +287,27 @@ public class MedicineStockPriceMappingService {
         if (qty == null || qty < 0) {
             throw new IllegalArgumentException("stock quantity must be zero or greater");
         }
+        if (expireDate == null) {
+            throw new IllegalArgumentException("expire date is required");
+        }
 
         AdiMedicineDetails details = detailsRepository.findById(medicineId)
             .orElseThrow(() -> new IllegalArgumentException("medicine not found"));
 
         AdiMedicineStockPriceMapping mapping = repository
-            .findByMedicineAndPrices(medicineId, sellingPrice, costPrice)
+            .findByMedicineAndPrices(medicineId, sellingPrice, costPrice, expireDate)
             .orElseGet(() -> AdiMedicineStockPriceMapping.builder()
                 .medicine(details)
                 .price(sellingPrice)
                 .costPrice(costPrice)
+                .expireDate(expireDate)
                 .addedBy("admin")
                 .build()
             );
 
-        mapping.setQty(qty);
+        int currentQty = mapping.getQty() == null ? 0 : mapping.getQty();
+        mapping.setQty(currentQty + qty);
+        mapping.setExpireDate(expireDate);
         AdiMedicineStockPriceMapping saved = repository.save(mapping);
 
         Map<String, Object> response = new HashMap<>();

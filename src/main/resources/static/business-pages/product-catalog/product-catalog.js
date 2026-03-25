@@ -503,8 +503,10 @@ window.BusinessPages.register("productCatalog", function (root) {
         }
         const requiresRxInput = modalForm.querySelector("input[name=\"requiresRx\"]");
         const trackExpiryInput = modalForm.querySelector("input[name=\"trackExpiry\"]");
+        const expireDateInput = modalForm.querySelector("input[name=\"expireDate\"]");
         if (requiresRxInput) requiresRxInput.checked = false;
         if (trackExpiryInput) trackExpiryInput.checked = true;
+        if (expireDateInput) expireDateInput.value = "";
         updatePricingPreview();
     }
 
@@ -564,6 +566,8 @@ window.BusinessPages.register("productCatalog", function (root) {
         modalForm.querySelector("input[name=\"qty\"]").value = data.qty ?? 0;
         modalForm.querySelector("input[name=\"requiresRx\"]").checked = Boolean(data.requiresRx);
         modalForm.querySelector("input[name=\"trackExpiry\"]").checked = Boolean(data.trackExpiry);
+        const expireDateInput = modalForm.querySelector("input[name=\"expireDate\"]");
+        if (expireDateInput) expireDateInput.value = data.expireDate || "";
 
         const genericSelect = modalForm.querySelector("select[name=\"genericId\"]");
         const manufacturerSelect = modalForm.querySelector("select[name=\"manufacturerId\"]");
@@ -748,6 +752,45 @@ window.BusinessPages.register("productCatalog", function (root) {
         const sellingPreview = modalForm.querySelector("#product-selling-preview");
         const costPreview = modalForm.querySelector("#product-cost-preview");
         const profitPreview = modalForm.querySelector("#product-profit-margin");
+        const requiredFields = [
+            { name: "name", label: "Product name" },
+            { name: "genericId", label: "Generic name" },
+            { name: "category", label: "Category" },
+            { name: "manufacturerId", label: "Manufacturer" },
+            { name: "code", label: "Code" },
+            { name: "sellingPrice", label: "Selling price" },
+            { name: "costPrice", label: "Cost price" },
+            { name: "qty", label: "Stock qty" },
+            { name: "expireDate", label: "Expire date" }
+        ];
+        const markFieldInvalid = (field) => {
+            if (!field) return;
+            const wrapper = field.closest(".product-input");
+            if (wrapper) wrapper.classList.add("is-invalid");
+        };
+        const clearFieldInvalid = (field) => {
+            if (!field) return;
+            const wrapper = field.closest(".product-input");
+            if (wrapper) wrapper.classList.remove("is-invalid");
+        };
+
+        modalForm.addEventListener("input", (event) => {
+            const target = event.target;
+            if (!(target instanceof HTMLInputElement || target instanceof HTMLSelectElement)) return;
+            if (!target.closest(".product-input")) return;
+            if (String(target.value || "").trim() !== "") {
+                clearFieldInvalid(target);
+            }
+        });
+
+        modalForm.addEventListener("change", (event) => {
+            const target = event.target;
+            if (!(target instanceof HTMLInputElement || target instanceof HTMLSelectElement)) return;
+            if (!target.closest(".product-input")) return;
+            if (String(target.value || "").trim() !== "") {
+                clearFieldInvalid(target);
+            }
+        });
 
         updatePricingPreview = function () {
             const selling = Number(sellingInput?.value || 0);
@@ -775,6 +818,24 @@ window.BusinessPages.register("productCatalog", function (root) {
             event.preventDefault();
             const isEdit = Boolean(editingProductId);
             const formData = new FormData(modalForm);
+            let firstMissing = null;
+            requiredFields.forEach((fieldDef) => {
+                const field = modalForm.querySelector(`[name="${fieldDef.name}"]`);
+                clearFieldInvalid(field);
+                const value = field instanceof HTMLInputElement || field instanceof HTMLSelectElement
+                    ? String(field.value || "").trim()
+                    : "";
+                if (!value) {
+                    markFieldInvalid(field);
+                    if (!firstMissing) firstMissing = fieldDef.label;
+                }
+            });
+            if (firstMissing) {
+                if (window.ToastService && typeof window.ToastService.show === "function") {
+                    window.ToastService.show(`${firstMissing} is required.`, "error");
+                }
+                return;
+            }
             const payload = {
                 name: formData.get("name") || "",
                 code: formData.get("code") || "",
@@ -785,6 +846,7 @@ window.BusinessPages.register("productCatalog", function (root) {
                 sellingPrice: formData.get("sellingPrice") ? Number(formData.get("sellingPrice")) : null,
                 costPrice: formData.get("costPrice") ? Number(formData.get("costPrice")) : null,
                 qty: formData.get("qty") ? Number(formData.get("qty")) : null,
+                expireDate: formData.get("expireDate") || null,
                 requiresRx: formData.get("requiresRx") === "on",
                 trackExpiry: formData.get("trackExpiry") === "on"
             };
@@ -891,6 +953,41 @@ window.BusinessPages.register("productCatalog", function (root) {
             const sellingPrice = formData.get("sellingPrice") ? Number(formData.get("sellingPrice")) : null;
             const costPrice = formData.get("costPrice") ? Number(formData.get("costPrice")) : null;
             const qty = formData.get("qty") ? Number(formData.get("qty")) : null;
+            const expireDate = formData.get("expireDate") || "";
+            const requiredFields = [
+                { name: "sellingPrice", label: "Selling price" },
+                { name: "costPrice", label: "Cost price" },
+                { name: "qty", label: "Stock qty" },
+                { name: "expireDate", label: "Expire date" }
+            ];
+            const markFieldInvalid = (field) => {
+                if (!field) return;
+                const wrapper = field.closest(".product-input");
+                if (wrapper) wrapper.classList.add("is-invalid");
+            };
+            const clearFieldInvalid = (field) => {
+                if (!field) return;
+                const wrapper = field.closest(".product-input");
+                if (wrapper) wrapper.classList.remove("is-invalid");
+            };
+            let firstMissing = null;
+            requiredFields.forEach((fieldDef) => {
+                const field = pricingForm.querySelector(`[name="${fieldDef.name}"]`);
+                clearFieldInvalid(field);
+                const value = field instanceof HTMLInputElement || field instanceof HTMLSelectElement
+                    ? String(field.value || "").trim()
+                    : "";
+                if (!value) {
+                    markFieldInvalid(field);
+                    if (!firstMissing) firstMissing = fieldDef.label;
+                }
+            });
+            if (firstMissing) {
+                if (window.ToastService && typeof window.ToastService.show === "function") {
+                    window.ToastService.show(`${firstMissing} is required.`, "error");
+                }
+                return;
+            }
             if (!activePricingMedicineId) {
                 if (window.ToastService && typeof window.ToastService.show === "function") {
                     window.ToastService.show("Unable to locate selected product.", "error");
@@ -903,7 +1000,7 @@ window.BusinessPages.register("productCatalog", function (root) {
                 headers: {
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify({ sellingPrice, costPrice, qty })
+                body: JSON.stringify({ sellingPrice, costPrice, qty, expireDate })
             })
                 .then((response) => response.json().then((data) => ({ ok: response.ok, data })))
                 .then(({ ok, data }) => {
