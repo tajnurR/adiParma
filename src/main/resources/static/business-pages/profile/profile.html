@@ -1,0 +1,67 @@
+<section class="profile-page">
+    <div class="profile-header">
+        <div>
+            <h1 class="profile-title">Business Profile</h1>
+            <p class="profile-subtitle">Manage common application and pharmacy information.</p>
+        </div>
+        <div class="profile-logo">
+            <div id="profile-logo" class="profile-avatar">A</div>
+            <div>
+                <div id="profile-logo-name" class="profile-logo-name">AdiPharma Pharmacy</div>
+                <div id="profile-logo-tagline" class="profile-logo-tagline">Admin Panel</div>
+            </div>
+        </div>
+    </div>
+
+    <form id="profile-settings-form" class="profile-form">
+        <div class="profile-section">
+            <h2>Pharmacy Information</h2>
+            <div class="profile-grid">
+                <label class="profile-field">
+                    <span>Pharmacy Name</span>
+                    <input type="text" name="pharmacyName" placeholder="Enter pharmacy name" required />
+                </label>
+                <label class="profile-field">
+                    <span>Tagline</span>
+                    <input type="text" name="pharmacyTagline" placeholder="Admin Panel" />
+                </label>
+            </div>
+        </div>
+
+        <div class="profile-section">
+            <h2>Contact Information</h2>
+            <div class="profile-grid">
+                <label class="profile-field">
+                    <span>Phone</span>
+                    <input type="text" name="pharmacyPhone" placeholder="Phone number" />
+                </label>
+                <label class="profile-field">
+                    <span>Email</span>
+                    <input type="email" name="pharmacyEmail" placeholder="Email address" />
+                </label>
+            </div>
+            <label class="profile-field">
+                <span>Address</span>
+                <textarea name="pharmacyAddress" rows="3" placeholder="Street, city, country"></textarea>
+            </label>
+        </div>
+
+        <div class="profile-section">
+            <h2>Invoice & Receipt Settings</h2>
+            <div class="profile-grid">
+                <label class="profile-field">
+                    <span>Invoice Footer Note</span>
+                    <textarea name="invoiceFooterNote" rows="3" placeholder="Invoice footer note"></textarea>
+                </label>
+                <label class="profile-field">
+                    <span>Receipt Footer Note</span>
+                    <textarea name="receiptFooterNote" rows="3" placeholder="Receipt footer note"></textarea>
+                </label>
+            </div>
+        </div>
+
+        <div class="profile-actions">
+            <button type="submit" class="profile-save-btn">Save Settings</button>
+        </div>
+    </form>
+</section>

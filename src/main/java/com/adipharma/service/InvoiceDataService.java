@@ -16,7 +16,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,27 +28,16 @@ public class InvoiceDataService {
     private final AdiPointSalesMasterRepository masterRepository;
     private final AdiPointSalesDetailsRepository detailsRepository;
 
-    @Value("${adipharma.pharmacy.name:AdiPharma Pharmacy}")
-    private String pharmacyName;
-
-    @Value("${adipharma.pharmacy.address:}")
-    private String pharmacyAddress;
-
-    @Value("${adipharma.pharmacy.phone:}")
-    private String pharmacyPhone;
-
-    @Value("${adipharma.pharmacy.email:}")
-    private String pharmacyEmail;
-
-    @Value("${adipharma.invoice.footer:Thank you for choosing AdiPharma Pharmacy. Please keep this invoice for your records.}")
-    private String invoiceFooter;
+    private final SystemSettingsService settingsService;
 
     public InvoiceDataService(
         AdiPointSalesMasterRepository masterRepository,
-        AdiPointSalesDetailsRepository detailsRepository
+        AdiPointSalesDetailsRepository detailsRepository,
+        SystemSettingsService settingsService
     ) {
         this.masterRepository = masterRepository;
         this.detailsRepository = detailsRepository;
+        this.settingsService = settingsService;
     }
 
     @Transactional(readOnly = true)
@@ -65,11 +53,13 @@ public class InvoiceDataService {
         List<AdiPointSalesDetails> details
     ) {
         InvoiceData invoice = new InvoiceData();
-        invoice.pharmacyName = pharmacyName;
-        invoice.pharmacyAddress = blankToNull(pharmacyAddress);
-        invoice.pharmacyPhone = blankToNull(pharmacyPhone);
-        invoice.pharmacyEmail = blankToNull(pharmacyEmail);
-        invoice.footerNote = invoiceFooter;
+        var settings = settingsService.getSettingsPayload();
+        invoice.pharmacyName = (String) settings.get("pharmacyName");
+        invoice.pharmacyAddress = (String) settings.get("pharmacyAddress");
+        invoice.pharmacyPhone = (String) settings.get("pharmacyPhone");
+        invoice.pharmacyEmail = (String) settings.get("pharmacyEmail");
+        invoice.footerNote = (String) settings.get("invoiceFooterNote");
+        invoice.receiptFooterNote = (String) settings.get("receiptFooterNote");
         invoice.invoiceNo = fallback(master.getInvoiceNo(), "—");
         invoice.invoiceDate = formatDate(master.getSaleDate());
         invoice.paymentMethod = formatPayment(master.getPaymentType());

@@ -41,12 +41,12 @@
                 </div>
             </div>
             <div class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-full bg-gradient-to-br from-[#3b82f6] to-[#1d4ed8] text-white flex items-center justify-center text-xs font-semibold">
-                    AR
+                <div id="app-brand-avatar" class="w-9 h-9 rounded-full bg-gradient-to-br from-[#3b82f6] to-[#1d4ed8] text-white flex items-center justify-center text-xs font-semibold">
+                    A
                 </div>
                 <div>
-                    <div class="text-sm font-semibold text-[#0f172a]">AdiPharma Admin</div>
-                    <div class="text-xs text-[#64748b]">System Operator</div>
+                    <div id="app-brand-name" class="text-sm font-semibold text-[#0f172a]">AdiPharma Pharmacy</div>
+                    <div id="app-brand-tagline" class="text-xs text-[#64748b]">Admin Panel</div>
                 </div>
             </div>
         </header>
@@ -76,6 +76,30 @@
                 }
                 window.AppDayState = { isOpen };
             };
+            const updateHeaderBranding = (settings) => {
+                if (!settings) return;
+                const nameEl = document.getElementById("app-brand-name");
+                const tagEl = document.getElementById("app-brand-tagline");
+                const avatarEl = document.getElementById("app-brand-avatar");
+                if (nameEl && settings.pharmacyName) {
+                    nameEl.textContent = settings.pharmacyName;
+                }
+                if (tagEl && settings.pharmacyTagline) {
+                    tagEl.textContent = settings.pharmacyTagline;
+                }
+                if (avatarEl && settings.pharmacyName) {
+                    const initial = settings.pharmacyName.trim().charAt(0).toUpperCase();
+                    avatarEl.textContent = initial || "A";
+                }
+                if (settings.pharmacyName) {
+                    document.title = settings.pharmacyName;
+                }
+                window.AppSettings = settings;
+            };
+            const fetchSettings = () => fetch("/api/system-settings")
+                .then((response) => response.json())
+                .then((data) => updateHeaderBranding(data))
+                .catch(() => {});
             const fetchDayStatus = () => fetch("/api/day/status")
                 .then((response) => response.json())
                 .then((data) => updateDayUi(data))
@@ -102,6 +126,7 @@
             window.addEventListener("online", updateConnection);
             window.addEventListener("offline", updateConnection);
             fetchDayStatus();
+            fetchSettings();
         }
 
         initHeaderStatus();
@@ -155,6 +180,11 @@
                 html: "/business-pages/settings/settings.html",
                 css: "/business-pages/settings/settings.css",
                 js: "/business-pages/settings/settings.js"
+            },
+            profile: {
+                html: "/business-pages/profile/profile.html",
+                css: "/business-pages/profile/profile.css",
+                js: "/business-pages/profile/profile.js"
             }
         };
         const commonAssets = {
@@ -231,6 +261,16 @@
             $(".menu-item").removeClass("active").attr("aria-current", "false");
             const activeKey = pageKey === "customerSales" ? "customer" : pageKey;
             $(`.menu-item[data-page="${activeKey}"]`).addClass("active").attr("aria-current", "page");
+
+            const settingsSubmenu = document.querySelector("[data-settings-submenu]");
+            const settingsToggle = document.querySelector("[data-settings-toggle]");
+            const isSettingsPage = pageKey === "settings" || pageKey === "profile";
+            if (settingsSubmenu) {
+                settingsSubmenu.classList.toggle("hidden", !isSettingsPage);
+            }
+            if (settingsToggle) {
+                settingsToggle.classList.toggle("active", isSettingsPage);
+            }
         }
 
         function getPageKeyFromPath() {
@@ -244,6 +284,7 @@
             if (path === "/transactions") return "transactions";
             if (path === "/stock") return "stock";
             if (path === "/settings") return "settings";
+            if (path === "/profile") return "profile";
             return "overview";
         }
 
@@ -265,6 +306,13 @@
                 $sidebar.removeClass("w-[240px]").addClass("w-[80px]");
                 $(".sidebar-text").addClass("hidden");
                 $("#toggleBtn .material-symbols-outlined").text("menu");
+            }
+        });
+
+        $("[data-settings-toggle]").on("click", function () {
+            const submenu = document.querySelector("[data-settings-submenu]");
+            if (submenu) {
+                submenu.classList.toggle("hidden");
             }
         });
 

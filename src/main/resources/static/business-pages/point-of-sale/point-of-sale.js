@@ -21,6 +21,11 @@ window.BusinessPages.register("pos", function (root) {
     const invoiceProcessedEl = root.querySelector("[data-field=\"processed-by\"]");
     const invoiceBillToEl = root.querySelector("[data-field=\"bill-to\"]");
     const invoiceTotalEl = root.querySelector("[data-field=\"invoice-total\"]");
+    const invoiceCompanyShort = root.querySelector("[data-field=\"company-short\"]");
+    const invoiceCompanyName = root.querySelector("[data-field=\"company-name\"]");
+    const invoiceCompanyPhone = root.querySelector("[data-field=\"company-phone\"]");
+    const invoiceCompanyEmail = root.querySelector("[data-field=\"company-email\"]");
+    const invoiceCompanyFooter = root.querySelector("[data-field=\"company-footer\"]");
     const posState = { selectedCustomer: null };
     root.posState = posState;
     let lastSaleResponse = null;
@@ -431,6 +436,36 @@ window.BusinessPages.register("pos", function (root) {
 
     renderProducts();
     renderCart();
+    const applyCompanySettings = () => {
+        const settings = window.AppSettings || {};
+        if (invoiceCompanyShort && settings.pharmacyName) {
+            const initial = settings.pharmacyName.trim().charAt(0).toUpperCase();
+            invoiceCompanyShort.textContent = initial || "A";
+        }
+        if (invoiceCompanyName && settings.pharmacyName) {
+            invoiceCompanyName.textContent = settings.pharmacyName;
+        }
+        if (invoiceCompanyPhone) {
+            invoiceCompanyPhone.textContent = settings.pharmacyPhone || "—";
+        }
+        if (invoiceCompanyEmail) {
+            invoiceCompanyEmail.textContent = settings.pharmacyEmail || "—";
+        }
+        if (invoiceCompanyFooter && settings.invoiceFooterNote) {
+            invoiceCompanyFooter.textContent = settings.invoiceFooterNote;
+        }
+    };
+    if (window.AppSettings) {
+        applyCompanySettings();
+    } else {
+        fetch("/api/system-settings")
+            .then((response) => response.json())
+            .then((data) => {
+                window.AppSettings = data;
+                applyCompanySettings();
+            })
+            .catch(() => {});
+    }
 
     function getSelectedPaymentCode() {
         const activeButton = root.querySelector(".pos-payment-btn.active");

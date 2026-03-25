@@ -19,6 +19,7 @@ public class InvoiceData {
     public String discountTotal;
     public String grandTotal;
     public String footerNote;
+    public String receiptFooterNote;
     public List<Item> items;
 
     public static class Item {
