@@ -126,9 +126,17 @@ window.BusinessPages.register("pos", function (root) {
                             </div>
                             <div class="pos-cart-price">${formatMoney(item.price)}</div>
                             <div class="pos-qty-control">
-                                <button class="pos-qty-btn" type="button" data-action="decrease">−</button>
-                                <span class="pos-qty-value">${item.qty}</span>
-                                <button class="pos-qty-btn" type="button" data-action="increase">+</button>
+                                <input
+                                    class="pos-qty-input"
+                                    type="number"
+                                    min="1"
+                                    step="1"
+                                    inputmode="numeric"
+                                    value="${item.qty}"
+                                    ${item.stock > 0 ? `max="${item.stock}"` : ""}
+                                    data-action="qty-input"
+                                    aria-label="Item quantity"
+                                />
                             </div>
                             <div class="pos-discount-control">
                                 <div class="pos-discount-toggle" role="group" aria-label="Discount type">
@@ -170,8 +178,21 @@ window.BusinessPages.register("pos", function (root) {
     function addToCart(productId) {
         const product = products.find((item) => item.id === productId);
         if (!product) return;
+        const stock = Number(product.stock || 0);
+        if (stock <= 0) {
+            if (window.ToastService && typeof window.ToastService.show === "function") {
+                window.ToastService.show("Insufficient stock available for this item.", "error");
+            }
+            return;
+        }
         const existing = cartItems.find((item) => item.id === productId);
         if (existing) {
+            if (existing.qty + 1 > existing.stock) {
+                if (window.ToastService && typeof window.ToastService.show === "function") {
+                    window.ToastService.show("Quantity cannot exceed available stock.", "error");
+                }
+                return;
+            }
             existing.qty += 1;
         } else {
             cartItems.push({
@@ -180,6 +201,7 @@ window.BusinessPages.register("pos", function (root) {
                 subtitle: product.genericLine,
                 price: product.price,
                 qty: 1,
+                stock,
                 discountType: "percent",
                 discountValue: ""
             });
@@ -201,6 +223,7 @@ window.BusinessPages.register("pos", function (root) {
             const target = event.target;
             if (!(target instanceof HTMLElement)) return;
             if (target.closest(".pos-discount-input")) return;
+            if (target.closest(".pos-qty-input")) return;
             const row = target.closest(".pos-cart-item");
             if (!row) return;
             const id = parseInt(row.getAttribute("data-id"), 10);
@@ -208,16 +231,6 @@ window.BusinessPages.register("pos", function (root) {
             if (!item) return;
             const action = target.getAttribute("data-action");
             if (!action) return;
-            if (action === "increase") {
-                item.qty += 1;
-            }
-            if (action === "decrease") {
-                item.qty -= 1;
-                if (item.qty <= 0) {
-                    const index = cartItems.findIndex((entry) => entry.id === id);
-                    if (index !== -1) cartItems.splice(index, 1);
-                }
-            }
             if (action === "remove") {
                 const index = cartItems.findIndex((entry) => entry.id === id);
                 if (index !== -1) cartItems.splice(index, 1);
@@ -238,12 +251,32 @@ window.BusinessPages.register("pos", function (root) {
         cartContainer.addEventListener("input", (event) => {
             const target = event.target;
             if (!(target instanceof HTMLInputElement)) return;
-            if (target.getAttribute("data-action") !== "discount-input") return;
+            const action = target.getAttribute("data-action");
+            if (action !== "discount-input" && action !== "qty-input") return;
             const row = target.closest(".pos-cart-item");
             if (!row) return;
             const id = parseInt(row.getAttribute("data-id"), 10);
             const item = cartItems.find((entry) => entry.id === id);
             if (!item) return;
+            if (action === "qty-input") {
+                const rawQty = parseInt(target.value || "0", 10);
+                let nextQty = Number.isNaN(rawQty) ? 1 : rawQty;
+                nextQty = Math.max(nextQty, 1);
+                if (item.stock > 0 && nextQty > item.stock) {
+                    nextQty = item.stock;
+                    if (window.ToastService && typeof window.ToastService.show === "function") {
+                        window.ToastService.show("Quantity cannot exceed available stock.", "error");
+                    }
+                }
+                item.qty = nextQty;
+                target.value = String(nextQty);
+                const lineTotal = row.querySelector(".pos-cart-total");
+                if (lineTotal) {
+                    lineTotal.textContent = formatMoney(getDiscountedLineTotal(item));
+                }
+                updateTotals();
+                return;
+            }
             const rawValue = target.value;
             const numericValue = parseFloat(rawValue || "0") || 0;
             const subtotal = item.price * item.qty;
@@ -356,7 +389,7 @@ window.BusinessPages.register("pos", function (root) {
             brandLine: `[${brandCode}] - ${brandName}${strength}`,
             genericLine: `[${genericCode}] - ${genericName}`,
             price: Number(item.price || 0),
-            stock: item.qty ?? 0
+            stock: Number(item.qty || 0)
         };
     }
 
@@ -431,6 +464,13 @@ window.BusinessPages.register("pos", function (root) {
         if (!paymentType) {
             if (window.ToastService && typeof window.ToastService.show === "function") {
                 window.ToastService.show("Please select a payment method.", "error");
+            }
+            return null;
+        }
+        const invalidItem = cartItems.find((item) => item.stock <= 0 || item.qty > item.stock);
+        if (invalidItem) {
+            if (window.ToastService && typeof window.ToastService.show === "function") {
+                window.ToastService.show("Cart contains a quantity exceeding available stock.", "error");
             }
             return null;
         }
