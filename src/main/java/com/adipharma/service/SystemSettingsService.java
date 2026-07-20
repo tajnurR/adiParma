@@ -3,14 +3,13 @@ package com.adipharma.service;
 import com.adipharma.entity.AdiSystemSettings;
 import com.adipharma.repository.AdiSystemSettingsRepository;
 import jakarta.annotation.PostConstruct;
+import java.util.HashMap;
 import java.util.Map;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class SystemSettingsService {
-
-    private static final long SETTINGS_ID = 1L;
 
     private final AdiSystemSettingsRepository repository;
     private volatile AdiSystemSettings cached;
@@ -21,22 +20,22 @@ public class SystemSettingsService {
 
     @PostConstruct
     public void loadCache() {
-        cached = repository.findById(SETTINGS_ID).orElse(null);
+        cached = repository.findTopByOrderByIdAsc().orElseGet(this::createDefault);
     }
 
-    public AdiSystemSettings getSettings() {
+    public synchronized AdiSystemSettings getSettings() {
         AdiSystemSettings current = cached;
         if (current != null) {
             return current;
         }
-        current = repository.findById(SETTINGS_ID).orElseGet(this::createDefault);
+        current = repository.findTopByOrderByIdAsc().orElseGet(this::createDefault);
         cached = current;
         return current;
     }
 
     @Transactional
-    public AdiSystemSettings saveSettings(AdiSystemSettings incoming) {
-        AdiSystemSettings settings = repository.findById(SETTINGS_ID).orElseGet(this::createDefault);
+    public synchronized AdiSystemSettings saveSettings(AdiSystemSettings incoming) {
+        AdiSystemSettings settings = repository.findTopByOrderByIdAsc().orElseGet(this::createDefault);
         settings.setPharmacyName(trimOrNull(incoming.getPharmacyName()));
         settings.setPharmacyTagline(trimOrNull(incoming.getPharmacyTagline()));
         settings.setPharmacyAddress(trimOrNull(incoming.getPharmacyAddress()));
@@ -51,26 +50,31 @@ public class SystemSettingsService {
 
     public Map<String, Object> getSettingsPayload() {
         AdiSystemSettings settings = getSettings();
-        return Map.of(
-            "pharmacyName", fallback(settings.getPharmacyName(), "AdiPharma Pharmacy"),
-            "pharmacyTagline", fallback(settings.getPharmacyTagline(), "Admin Panel"),
-            "pharmacyAddress", blankToNull(settings.getPharmacyAddress()),
-            "pharmacyPhone", blankToNull(settings.getPharmacyPhone()),
-            "pharmacyEmail", blankToNull(settings.getPharmacyEmail()),
-            "invoiceFooterNote", fallback(
+        Map<String, Object> response = new HashMap<>();
+        response.put("pharmacyName", fallback(settings.getPharmacyName(), "AdiPharma Pharmacy"));
+        response.put("pharmacyTagline", fallback(settings.getPharmacyTagline(), "Admin Panel"));
+        response.put("pharmacyAddress", blankToNull(settings.getPharmacyAddress()));
+        response.put("pharmacyPhone", blankToNull(settings.getPharmacyPhone()));
+        response.put("pharmacyEmail", blankToNull(settings.getPharmacyEmail()));
+        response.put(
+            "invoiceFooterNote",
+            fallback(
                 settings.getInvoiceFooterNote(),
                 "Thank you for choosing AdiPharma Pharmacy. Please keep this invoice for your records."
-            ),
-            "receiptFooterNote", fallback(
+            )
+        );
+        response.put(
+            "receiptFooterNote",
+            fallback(
                 settings.getReceiptFooterNote(),
                 "Thank you for choosing AdiPharma Pharmacy."
             )
         );
+        return response;
     }
 
     private AdiSystemSettings createDefault() {
         AdiSystemSettings settings = AdiSystemSettings.builder()
-            .id(SETTINGS_ID)
             .pharmacyName("AdiPharma Pharmacy")
             .pharmacyTagline("Admin Panel")
             .invoiceFooterNote("Thank you for choosing AdiPharma Pharmacy. Please keep this invoice for your records.")

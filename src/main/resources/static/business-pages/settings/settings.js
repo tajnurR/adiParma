@@ -42,6 +42,13 @@ window.BusinessPages.register("settings", function (root) {
 
     function updateStatusUi(data) {
         const isOpen = Boolean(data?.isOpen);
+        const headerDayStatus = document.getElementById("app-day-status");
+
+        window.AppDayState = { isOpen };
+        if (headerDayStatus) {
+            headerDayStatus.textContent = isOpen ? "Day Open" : "Day Closed";
+        }
+
         if (statusBadge) {
             statusBadge.textContent = isOpen ? "Day Open" : "Day Closed";
             statusBadge.classList.toggle("is-open", isOpen);
