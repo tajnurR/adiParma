@@ -139,6 +139,36 @@
     line-height: 1.45;
 }
 
+.pos-card-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 8px;
+    min-width: 0;
+}
+
+.pos-card-meta-row {
+    display: grid;
+    grid-template-columns: 54px minmax(0, 1fr);
+    gap: 6px;
+    align-items: start;
+    min-width: 0;
+    font-size: 12px;
+    line-height: 1.35;
+}
+
+.pos-card-meta-label {
+    color: #64748b;
+    font-weight: 600;
+}
+
+.pos-card-meta-value {
+    color: #334155;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    min-width: 0;
+}
+
 .pos-rx-badge {
     display: inline-flex;
     align-items: center;

@@ -74,7 +74,16 @@ window.BusinessPages.register("pos", function (root) {
                     <div class="pos-card-header">
                         <div>
                             <div class="pos-card-title">${product.brandLine}</div>
-                            <div class="pos-card-subtitle">${product.genericLine}</div>
+                            <div class="pos-card-meta">
+                                <div class="pos-card-meta-row">
+                                    <span class="pos-card-meta-label">Generic</span>
+                                    <span class="pos-card-meta-value">${product.genericLine}</span>
+                                </div>
+                                <div class="pos-card-meta-row">
+                                    <span class="pos-card-meta-label">Company</span>
+                                    <span class="pos-card-meta-value">${product.companyLine}</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="pos-card-footer">
@@ -207,7 +216,7 @@ window.BusinessPages.register("pos", function (root) {
             cartItems.push({
                 id: product.id,
                 name: product.brandLine,
-                subtitle: product.genericLine,
+                subtitle: product.cartSubtitle,
                 price: product.price,
                 qty: 1,
                 stock,
@@ -395,18 +404,16 @@ window.BusinessPages.register("pos", function (root) {
         const genericCode = generic.genericCode || "";
         const genericName = generic.genericName || "";
         const manufacturerName = manufacturer.manufacturerName || "";
-        const category = medicine.type || "";
-        const details = [
-            genericCode || genericName ? `[${genericCode}] - ${genericName}` : "",
-            manufacturerName,
-            category
-        ].filter(Boolean).join(" • ");
+        const genericLine = genericCode || genericName ? `[${genericCode}] - ${genericName}` : "—";
+        const companyLine = manufacturerName || "—";
         return {
             id: item.id,
             brandCode,
             brandName,
             brandLine: `[${brandCode}] - ${brandName}${strength}`,
-            genericLine: details || "—",
+            genericLine,
+            companyLine,
+            cartSubtitle: [genericLine, companyLine].filter((value) => value && value !== "—").join(" • ") || "—",
             price: Number(item.price || 0),
             stock: Number(item.qty || 0)
         };
