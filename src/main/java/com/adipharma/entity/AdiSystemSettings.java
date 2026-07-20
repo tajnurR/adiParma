@@ -41,6 +41,57 @@ public class AdiSystemSettings {
     @Column(name = "pharmacy_email", length = 150)
     private String pharmacyEmail;
 
+    @Column(name = "invoice_title", length = 100)
+    private String invoiceTitle;
+
+    @Column(name = "receipt_title", length = 100)
+    private String receiptTitle;
+
+    @Column(name = "currency_symbol", length = 20)
+    private String currencySymbol;
+
+    @Column(name = "bill_to_label", length = 100)
+    private String billToLabel;
+
+    @Column(name = "walk_in_customer_label", length = 150)
+    private String walkInCustomerLabel;
+
+    @Column(name = "customer_label", length = 100)
+    private String customerLabel;
+
+    @Column(name = "invoice_no_label", length = 100)
+    private String invoiceNoLabel;
+
+    @Column(name = "invoice_date_label", length = 100)
+    private String invoiceDateLabel;
+
+    @Column(name = "payment_label", length = 100)
+    private String paymentLabel;
+
+    @Column(name = "processed_by_label", length = 100)
+    private String processedByLabel;
+
+    @Column(name = "item_label", length = 100)
+    private String itemLabel;
+
+    @Column(name = "qty_label", length = 100)
+    private String qtyLabel;
+
+    @Column(name = "unit_price_label", length = 100)
+    private String unitPriceLabel;
+
+    @Column(name = "discount_label", length = 100)
+    private String discountLabel;
+
+    @Column(name = "amount_label", length = 100)
+    private String amountLabel;
+
+    @Column(name = "subtotal_label", length = 100)
+    private String subtotalLabel;
+
+    @Column(name = "grand_total_label", length = 100)
+    private String grandTotalLabel;
+
     @Column(name = "invoice_footer_note", length = 500)
     private String invoiceFooterNote;
 

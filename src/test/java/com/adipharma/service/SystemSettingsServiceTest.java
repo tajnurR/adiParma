@@ -39,6 +39,8 @@ class SystemSettingsServiceTest {
 
         assertNull(idBeforeSave.get());
         assertEquals("AdiPharma Pharmacy", payload.get("pharmacyName"));
+        assertEquals("INVOICE", payload.get("invoiceTitle"));
+        assertEquals("Grand Total", payload.get("grandTotalLabel"));
         assertTrue(payload.containsKey("pharmacyAddress"));
         assertNull(payload.get("pharmacyAddress"));
     }

@@ -41,6 +41,23 @@ public class SystemSettingsService {
         settings.setPharmacyAddress(trimOrNull(incoming.getPharmacyAddress()));
         settings.setPharmacyPhone(trimOrNull(incoming.getPharmacyPhone()));
         settings.setPharmacyEmail(trimOrNull(incoming.getPharmacyEmail()));
+        settings.setInvoiceTitle(trimOrNull(incoming.getInvoiceTitle()));
+        settings.setReceiptTitle(trimOrNull(incoming.getReceiptTitle()));
+        settings.setCurrencySymbol(trimOrNull(incoming.getCurrencySymbol()));
+        settings.setBillToLabel(trimOrNull(incoming.getBillToLabel()));
+        settings.setWalkInCustomerLabel(trimOrNull(incoming.getWalkInCustomerLabel()));
+        settings.setCustomerLabel(trimOrNull(incoming.getCustomerLabel()));
+        settings.setInvoiceNoLabel(trimOrNull(incoming.getInvoiceNoLabel()));
+        settings.setInvoiceDateLabel(trimOrNull(incoming.getInvoiceDateLabel()));
+        settings.setPaymentLabel(trimOrNull(incoming.getPaymentLabel()));
+        settings.setProcessedByLabel(trimOrNull(incoming.getProcessedByLabel()));
+        settings.setItemLabel(trimOrNull(incoming.getItemLabel()));
+        settings.setQtyLabel(trimOrNull(incoming.getQtyLabel()));
+        settings.setUnitPriceLabel(trimOrNull(incoming.getUnitPriceLabel()));
+        settings.setDiscountLabel(trimOrNull(incoming.getDiscountLabel()));
+        settings.setAmountLabel(trimOrNull(incoming.getAmountLabel()));
+        settings.setSubtotalLabel(trimOrNull(incoming.getSubtotalLabel()));
+        settings.setGrandTotalLabel(trimOrNull(incoming.getGrandTotalLabel()));
         settings.setInvoiceFooterNote(trimOrNull(incoming.getInvoiceFooterNote()));
         settings.setReceiptFooterNote(trimOrNull(incoming.getReceiptFooterNote()));
         AdiSystemSettings saved = repository.save(settings);
@@ -56,6 +73,23 @@ public class SystemSettingsService {
         response.put("pharmacyAddress", blankToNull(settings.getPharmacyAddress()));
         response.put("pharmacyPhone", blankToNull(settings.getPharmacyPhone()));
         response.put("pharmacyEmail", blankToNull(settings.getPharmacyEmail()));
+        response.put("invoiceTitle", fallback(settings.getInvoiceTitle(), "INVOICE"));
+        response.put("receiptTitle", fallback(settings.getReceiptTitle(), "SALES RECEIPT"));
+        response.put("currencySymbol", fallback(settings.getCurrencySymbol(), "৳"));
+        response.put("billToLabel", fallback(settings.getBillToLabel(), "Bill To"));
+        response.put("walkInCustomerLabel", fallback(settings.getWalkInCustomerLabel(), "Walk-in Customer"));
+        response.put("customerLabel", fallback(settings.getCustomerLabel(), "Customer"));
+        response.put("invoiceNoLabel", fallback(settings.getInvoiceNoLabel(), "Invoice #"));
+        response.put("invoiceDateLabel", fallback(settings.getInvoiceDateLabel(), "Date"));
+        response.put("paymentLabel", fallback(settings.getPaymentLabel(), "Payment"));
+        response.put("processedByLabel", fallback(settings.getProcessedByLabel(), "Processed by"));
+        response.put("itemLabel", fallback(settings.getItemLabel(), "Item"));
+        response.put("qtyLabel", fallback(settings.getQtyLabel(), "Qty"));
+        response.put("unitPriceLabel", fallback(settings.getUnitPriceLabel(), "Unit Price"));
+        response.put("discountLabel", fallback(settings.getDiscountLabel(), "Discount"));
+        response.put("amountLabel", fallback(settings.getAmountLabel(), "Amount"));
+        response.put("subtotalLabel", fallback(settings.getSubtotalLabel(), "Subtotal"));
+        response.put("grandTotalLabel", fallback(settings.getGrandTotalLabel(), "Grand Total"));
         response.put(
             "invoiceFooterNote",
             fallback(
@@ -77,6 +111,23 @@ public class SystemSettingsService {
         AdiSystemSettings settings = AdiSystemSettings.builder()
             .pharmacyName("AdiPharma Pharmacy")
             .pharmacyTagline("Admin Panel")
+            .invoiceTitle("INVOICE")
+            .receiptTitle("SALES RECEIPT")
+            .currencySymbol("৳")
+            .billToLabel("Bill To")
+            .walkInCustomerLabel("Walk-in Customer")
+            .customerLabel("Customer")
+            .invoiceNoLabel("Invoice #")
+            .invoiceDateLabel("Date")
+            .paymentLabel("Payment")
+            .processedByLabel("Processed by")
+            .itemLabel("Item")
+            .qtyLabel("Qty")
+            .unitPriceLabel("Unit Price")
+            .discountLabel("Discount")
+            .amountLabel("Amount")
+            .subtotalLabel("Subtotal")
+            .grandTotalLabel("Grand Total")
             .invoiceFooterNote("Thank you for choosing AdiPharma Pharmacy. Please keep this invoice for your records.")
             .receiptFooterNote("Thank you for choosing AdiPharma Pharmacy.")
             .build();

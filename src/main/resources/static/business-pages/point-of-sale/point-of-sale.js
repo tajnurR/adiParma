@@ -38,15 +38,19 @@ window.BusinessPages.register("pos", function (root) {
         other: 4
     };
 
+    function getCurrencySymbol() {
+        return window.AppSettings?.currencySymbol || "৳";
+    }
+
     if (!productsContainer) return root;
 
     function formatMoney(value) {
-        return `৳${value.toFixed(2)}`;
+        return `${getCurrencySymbol()}${value.toFixed(2)}`;
     }
 
     function formatMoneyValue(value) {
         const numeric = Number(value || 0);
-        return `৳${numeric.toFixed(2)}`;
+        return `${getCurrencySymbol()}${numeric.toFixed(2)}`;
     }
 
     function formatInvoiceDate(value) {
@@ -572,7 +576,7 @@ window.BusinessPages.register("pos", function (root) {
         if (invoicePaymentEl) invoicePaymentEl.textContent = getPaymentLabel(data.paymentType);
         if (invoiceProcessedEl) invoiceProcessedEl.textContent = data.processedBy || "—";
         if (invoiceBillToEl) {
-            invoiceBillToEl.textContent = data.customerName || "Walk-in Customer";
+            invoiceBillToEl.textContent = data.customerName || window.AppSettings?.walkInCustomerLabel || "Walk-in Customer";
         }
         if (invoiceTotalEl) invoiceTotalEl.textContent = formatMoneyValue(data.totalAmount);
 

@@ -58,6 +58,22 @@ public class InvoiceDataService {
         invoice.pharmacyAddress = (String) settings.get("pharmacyAddress");
         invoice.pharmacyPhone = (String) settings.get("pharmacyPhone");
         invoice.pharmacyEmail = (String) settings.get("pharmacyEmail");
+        invoice.invoiceTitle = (String) settings.get("invoiceTitle");
+        invoice.receiptTitle = (String) settings.get("receiptTitle");
+        invoice.currencySymbol = (String) settings.get("currencySymbol");
+        invoice.billToLabel = (String) settings.get("billToLabel");
+        invoice.customerLabel = (String) settings.get("customerLabel");
+        invoice.invoiceNoLabel = (String) settings.get("invoiceNoLabel");
+        invoice.invoiceDateLabel = (String) settings.get("invoiceDateLabel");
+        invoice.paymentLabelText = (String) settings.get("paymentLabel");
+        invoice.processedByLabel = (String) settings.get("processedByLabel");
+        invoice.itemLabel = (String) settings.get("itemLabel");
+        invoice.qtyLabel = (String) settings.get("qtyLabel");
+        invoice.unitPriceLabel = (String) settings.get("unitPriceLabel");
+        invoice.discountLabel = (String) settings.get("discountLabel");
+        invoice.amountLabel = (String) settings.get("amountLabel");
+        invoice.subtotalLabel = (String) settings.get("subtotalLabel");
+        invoice.grandTotalLabel = (String) settings.get("grandTotalLabel");
         invoice.footerNote = (String) settings.get("invoiceFooterNote");
         invoice.receiptFooterNote = (String) settings.get("receiptFooterNote");
         invoice.invoiceNo = fallback(master.getInvoiceNo(), "—");
@@ -66,7 +82,10 @@ public class InvoiceDataService {
         invoice.processedBy = fallback(master.getCreatedBy(), "—");
 
         AdiCustomar customer = master.getCustomer();
-        invoice.billToName = customer != null ? fallback(customer.getName(), "Walk-in Customer") : "Walk-in Customer";
+        String walkInCustomerLabel = (String) settings.get("walkInCustomerLabel");
+        invoice.billToName = customer != null
+            ? fallback(customer.getName(), walkInCustomerLabel)
+            : walkInCustomerLabel;
         invoice.billToContact = customer != null ? blankToNull(customer.getContact()) : null;
         invoice.billToAddress = customer != null ? blankToNull(customer.getAddress()) : null;
 
@@ -96,15 +115,15 @@ public class InvoiceDataService {
             discountTotal = discountTotal.add(lineDiscount);
 
             item.qty = String.valueOf(qty);
-            item.unitPrice = formatMoney(unitPrice);
-            item.discount = formatDiscount(detail.getDiscount(), detail.getDiscountType());
-            item.total = formatMoney(lineTotal);
+            item.unitPrice = formatMoney(unitPrice, invoice.currencySymbol);
+            item.discount = formatDiscount(detail.getDiscount(), detail.getDiscountType(), invoice.currencySymbol);
+            item.total = formatMoney(lineTotal, invoice.currencySymbol);
             invoice.items.add(item);
         }
 
-        invoice.subtotal = formatMoney(subtotal);
-        invoice.discountTotal = formatMoney(discountTotal);
-        invoice.grandTotal = formatMoney(master.getTotalAmount());
+        invoice.subtotal = formatMoney(subtotal, invoice.currencySymbol);
+        invoice.discountTotal = formatMoney(discountTotal, invoice.currencySymbol);
+        invoice.grandTotal = formatMoney(master.getTotalAmount(), invoice.currencySymbol);
         return invoice;
     }
 
@@ -120,12 +139,12 @@ public class InvoiceDataService {
         return dateTime.format(INVOICE_DATE_FORMAT);
     }
 
-    private String formatMoney(BigDecimal value) {
+    private String formatMoney(BigDecimal value, String currencySymbol) {
         BigDecimal safe = value == null ? BigDecimal.ZERO : value;
-        return "৳" + safe.setScale(2, RoundingMode.HALF_UP).toPlainString();
+        return fallback(currencySymbol, "৳") + safe.setScale(2, RoundingMode.HALF_UP).toPlainString();
     }
 
-    private String formatDiscount(BigDecimal value, String type) {
+    private String formatDiscount(BigDecimal value, String type, String currencySymbol) {
         if (value == null || value.compareTo(BigDecimal.ZERO) <= 0) {
             return "—";
         }
@@ -133,7 +152,7 @@ public class InvoiceDataService {
         if (normalized.equals("PERCENT") || normalized.equals("PERCENTAGE")) {
             return value.stripTrailingZeros().toPlainString() + "%";
         }
-        return formatMoney(value);
+        return formatMoney(value, currencySymbol);
     }
 
     private String buildMedicineName(AdiMedicineDetails medicine) {

@@ -146,33 +146,33 @@
                 <div th:if="${invoice.pharmacyEmail}" th:text="'Email: ' + ${invoice.pharmacyEmail}">Email</div>
             </div>
         </div>
-        <div class="title">INVOICE</div>
+        <div class="title" th:text="${invoice.invoiceTitle}">INVOICE</div>
     </div>
 
     <div class="divider"></div>
 
     <div class="meta">
         <div>
-            <div class="label">Bill To</div>
+            <div class="label" th:text="${invoice.billToLabel}">Bill To</div>
             <div class="value" th:text="${invoice.billToName}">Walk-in Customer</div>
             <div class="value" th:if="${invoice.billToContact}" th:text="${invoice.billToContact}">Contact</div>
             <div class="value" th:if="${invoice.billToAddress}" th:text="${invoice.billToAddress}">Address</div>
         </div>
         <div class="meta-details">
             <div class="meta-row">
-                <span>Invoice #</span>
+                <span th:text="${invoice.invoiceNoLabel}">Invoice #</span>
                 <span th:text="${invoice.invoiceNo}">INV</span>
             </div>
             <div class="meta-row">
-                <span>Date</span>
+                <span th:text="${invoice.invoiceDateLabel}">Date</span>
                 <span th:text="${invoice.invoiceDate}">01 Jan 2026</span>
             </div>
             <div class="meta-row">
-                <span>Payment</span>
+                <span th:text="${invoice.paymentLabelText}">Payment</span>
                 <span th:text="${invoice.paymentMethod}">Cash</span>
             </div>
             <div class="meta-row">
-                <span>Processed by</span>
+                <span th:text="${invoice.processedByLabel}">Processed by</span>
                 <span th:text="${invoice.processedBy}">—</span>
             </div>
         </div>
@@ -181,11 +181,11 @@
     <table>
         <thead>
         <tr>
-            <th>Item</th>
-            <th class="center">Qty</th>
-            <th class="right">Unit Price</th>
-            <th class="right">Discount</th>
-            <th class="right">Amount</th>
+            <th th:text="${invoice.itemLabel}">Item</th>
+            <th class="center" th:text="${invoice.qtyLabel}">Qty</th>
+            <th class="right" th:text="${invoice.unitPriceLabel}">Unit Price</th>
+            <th class="right" th:text="${invoice.discountLabel}">Discount</th>
+            <th class="right" th:text="${invoice.amountLabel}">Amount</th>
         </tr>
         </thead>
         <tbody>
@@ -205,15 +205,15 @@
     <div class="totals">
         <div class="totals-box">
             <div class="totals-row">
-                <span>Subtotal</span>
+                <span th:text="${invoice.subtotalLabel}">Subtotal</span>
                 <span th:text="${invoice.subtotal}">৳0.00</span>
             </div>
             <div class="totals-row">
-                <span>Discount</span>
+                <span th:text="${invoice.discountLabel}">Discount</span>
                 <span th:text="${invoice.discountTotal}">৳0.00</span>
             </div>
             <div class="totals-row grand">
-                <span>Grand Total</span>
+                <span th:text="${invoice.grandTotalLabel}">Grand Total</span>
                 <span th:text="${invoice.grandTotal}">৳0.00</span>
             </div>
         </div>

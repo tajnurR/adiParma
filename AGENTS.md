@@ -100,7 +100,7 @@ Important exceptions to the normal flow:
 | `AdiPointSalesMaster` | `adi_point_sales_master` | Sale/invoice header. Unique `invoiceNo`, payment info, totals, optional customer, sale/created timestamps. |
 | `AdiPointSalesDetails` | `adi_point_sales_details` | Sale line items. Required stock batch and sale master, quantity, total price, discount, discount type. |
 | `AdiDayLedger` | `adi_day_ledger` | Business day open/close state and daily totals by payment method. |
-| `AdiSystemSettings` | `adi_system_settings` | Singleton-style pharmacy/profile/invoice settings row. Service uses the first row by ascending ID and creates defaults if none exists. |
+| `AdiSystemSettings` | `adi_system_settings` | Singleton-style pharmacy/profile/invoice settings row. Service uses the first row by ascending ID and creates defaults if none exists. Also stores invoice/receipt titles, labels, currency symbol, fallback customer text, and footer notes. |
 
 Foreign-key behavior declared in entities:
 
@@ -132,6 +132,7 @@ Foreign-key behavior declared in entities:
 - Alert status priority is out of stock first, then expiring soon, then low stock, then normal.
 - Reports default to last 30 days if dates are omitted or invalid.
 - System settings use a cached singleton-style row; defaults are created in code when missing.
+- Invoice/receipt presentation text is database-backed through `AdiSystemSettings`: invoice title, receipt title, currency symbol, bill-to/customer labels, invoice metadata labels, table column labels, total labels, walk-in customer label, and footer notes.
 
 ### Inferred or Needs Verification
 
@@ -223,6 +224,7 @@ Foreign-key behavior declared in entities:
 - PDF endpoint: `GET /api/invoices/{id}/pdf?download=false`.
 - Thermal page: `GET /invoices/{id}/thermal`.
 - Data assembly: `InvoiceDataService.getInvoiceData` reads sale master/details and settings.
+- Presentation labels/currency/footer text come from `SystemSettingsService.getSettingsPayload()` and are copied into `InvoiceData`.
 - PDF rendering: `InvoicePdfService.generateInvoicePdf` -> `PdfGenerationService.generateFromTemplate("invoice-a4", Map.of("invoice", invoiceData))`.
 - Templates: `templates/invoice-a4.html` and `templates/receipt-thermal.html`.
 
@@ -327,6 +329,7 @@ Primary key patterns:
 - Most entities use `Long` IDs with `GenerationType.IDENTITY`.
 - `AdiCustomar` uses `Integer` ID.
 - `AdiSystemSettings` uses `Long` ID and is treated as a singleton-style table by `SystemSettingsService`.
+- `AdiSystemSettings` includes invoice/receipt display settings, so Hibernate `ddl-auto:update` adds columns when the app starts against an older schema.
 
 Audit/default fields:
 
@@ -391,7 +394,7 @@ Endpoint summary:
 | `POST /api/point-sales` | POS sale creation |
 | `GET /api/transactions`, `GET /api/transactions/{id}` | transaction list/detail |
 | `GET /api/reports/summary`, `GET /api/reports/export` | analytics and CSV export |
-| `GET/PUT /api/system-settings` | settings/profile |
+| `GET/PUT /api/system-settings` | settings/profile, including invoice/receipt labels and currency |
 | `GET /api/day/status`, `GET /api/day/records`, `POST /api/day/open`, `POST /api/day/close` | day ledger |
 | `GET /api/invoices/{id}/pdf` | PDF invoice bytes |
 | `GET /invoices/{id}/thermal` | auto-print thermal receipt page |
@@ -511,6 +514,7 @@ Recommended verification before completing changes:
 | Reports (`ReportsService`) | Financial metrics and stock value calculations. | Confirm date windows are inclusive/exclusive as intended and whether stock value should use selling price or cost. |
 | Invoice/PDF generation | Customer-facing financial documents. | Verify `InvoiceDataService`, both templates, PDF byte response headers, and thermal print behavior. |
 | System settings cache | First settings row is cached in memory. | Ensure updates refresh cache and defaults remain compatible. |
+| Invoice settings | Invoice templates rely on DB-backed labels/currency from `AdiSystemSettings`. | Keep `InvoiceData`, `InvoiceDataService`, `SystemSettingsService`, profile form, and both templates in sync. |
 | Database schema | Hibernate `ddl-auto:update` without migrations. | Avoid risky entity changes unless schema impact is understood. Consider adding migrations only as an explicit project decision. |
 | Authentication/permissions | No actual security layer found. | Do not assume user identity, roles, or authorization exists. |
 | Seed data script | Writes large data sets and random prices/quantities using local DB config. | Never run against important data without explicit approval and review. |

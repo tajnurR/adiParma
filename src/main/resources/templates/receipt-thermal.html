@@ -84,15 +84,15 @@
     </div>
 
     <div class="separator"></div>
-    <div class="title center">SALES RECEIPT</div>
+    <div class="title center" th:text="${invoice.receiptTitle}">SALES RECEIPT</div>
     <div class="separator"></div>
 
     <div class="meta">
-        <div><strong>Invoice #:</strong> <span th:text="${invoice.invoiceNo}">—</span></div>
-        <div><strong>Date:</strong> <span th:text="${invoice.invoiceDate}">—</span></div>
-        <div><strong>Customer:</strong> <span th:text="${invoice.billToName}">Walk-in Customer</span></div>
-        <div><strong>Payment:</strong> <span th:text="${invoice.paymentMethod}">Cash</span></div>
-        <div><strong>Processed by:</strong> <span th:text="${invoice.processedBy}">—</span></div>
+        <div><strong th:text="${invoice.invoiceNoLabel + ':'}">Invoice #:</strong> <span th:text="${invoice.invoiceNo}">—</span></div>
+        <div><strong th:text="${invoice.invoiceDateLabel + ':'}">Date:</strong> <span th:text="${invoice.invoiceDate}">—</span></div>
+        <div><strong th:text="${invoice.customerLabel + ':'}">Customer:</strong> <span th:text="${invoice.billToName}">Walk-in Customer</span></div>
+        <div><strong th:text="${invoice.paymentLabelText + ':'}">Payment:</strong> <span th:text="${invoice.paymentMethod}">Cash</span></div>
+        <div><strong th:text="${invoice.processedByLabel + ':'}">Processed by:</strong> <span th:text="${invoice.processedBy}">—</span></div>
     </div>
 
     <div class="separator"></div>
@@ -100,9 +100,9 @@
     <table>
         <thead>
         <tr>
-            <th>Item</th>
-            <th class="col-qty">Qty</th>
-            <th class="col-price">Amount</th>
+            <th th:text="${invoice.itemLabel}">Item</th>
+            <th class="col-qty" th:text="${invoice.qtyLabel}">Qty</th>
+            <th class="col-price" th:text="${invoice.amountLabel}">Amount</th>
         </tr>
         </thead>
         <tbody>
@@ -119,7 +119,7 @@
 
     <div class="separator"></div>
     <div class="totals">
-        <span>TOTAL</span>
+        <span th:text="${invoice.grandTotalLabel}">TOTAL</span>
         <span th:text="${invoice.grandTotal}">৳0.00</span>
     </div>
 

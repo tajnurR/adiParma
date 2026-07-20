@@ -6,6 +6,28 @@ window.BusinessPages.register("profile", function (root) {
 
     if (!form) return root;
 
+    const invoiceSettingFields = [
+        "invoiceTitle",
+        "receiptTitle",
+        "currencySymbol",
+        "billToLabel",
+        "walkInCustomerLabel",
+        "customerLabel",
+        "invoiceNoLabel",
+        "invoiceDateLabel",
+        "paymentLabel",
+        "processedByLabel",
+        "itemLabel",
+        "qtyLabel",
+        "unitPriceLabel",
+        "discountLabel",
+        "amountLabel",
+        "subtotalLabel",
+        "grandTotalLabel",
+        "invoiceFooterNote",
+        "receiptFooterNote"
+    ];
+
     function applyLogo(name, tagline) {
         if (logo && name) {
             const initial = name.trim().charAt(0).toUpperCase();
@@ -28,8 +50,11 @@ window.BusinessPages.register("profile", function (root) {
                 form.pharmacyPhone.value = data.pharmacyPhone || "";
                 form.pharmacyEmail.value = data.pharmacyEmail || "";
                 form.pharmacyAddress.value = data.pharmacyAddress || "";
-                form.invoiceFooterNote.value = data.invoiceFooterNote || "";
-                form.receiptFooterNote.value = data.receiptFooterNote || "";
+                invoiceSettingFields.forEach((field) => {
+                    if (form[field]) {
+                        form[field].value = data[field] || "";
+                    }
+                });
                 applyLogo(data.pharmacyName || "", data.pharmacyTagline || "");
             })
             .catch(() => {});
@@ -46,10 +71,11 @@ window.BusinessPages.register("profile", function (root) {
             pharmacyTagline: form.pharmacyTagline.value || "",
             pharmacyPhone: form.pharmacyPhone.value || "",
             pharmacyEmail: form.pharmacyEmail.value || "",
-            pharmacyAddress: form.pharmacyAddress.value || "",
-            invoiceFooterNote: form.invoiceFooterNote.value || "",
-            receiptFooterNote: form.receiptFooterNote.value || ""
+            pharmacyAddress: form.pharmacyAddress.value || ""
         };
+        invoiceSettingFields.forEach((field) => {
+            payload[field] = form[field]?.value || "";
+        });
 
         fetch("/api/system-settings", {
             method: "PUT",
