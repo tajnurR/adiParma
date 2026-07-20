@@ -154,7 +154,9 @@ Foreign-key behavior declared in entities:
 ### POS Sale
 
 - UI entry: `static/business-pages/point-of-sale/point-of-sale.html` and `point-of-sale.js`.
-- Product lookup: `fetchProducts()` calls `GET /api/medicine-stock-price-mappings?q=...`.
+- Product lookup: `fetchProducts()` calls `GET /api/medicine-stock-price-mappings?q=...&searchBy=...`.
+- POS medicine search requires at least 3 typed characters. Search scopes are `all`, `medicine`, `generic`, `company`, `code`, and `category`; each new search clears current results and resets the product grid scroll to the top.
+- The POS product result grid is intentionally constrained by `point-of-sale.css` to scroll inside the left panel; do not let search results grow the page height or push the cart/billing panel down.
 - Customer lookup/create: `CustomerDropdownService` calls `GET /api/customers/search` and `POST /api/customers`.
 - Client validation: customer selected, day not closed when `window.AppDayState.isOpen === false`, cart nonempty, payment selected, item quantity not above client-known stock, cash enough for cash payments, discount cannot reduce a line below `0.01`.
 - API entry: `PointSalesApiController.create()`, `POST /api/point-sales`.
@@ -377,7 +379,7 @@ Endpoint summary:
 
 | Endpoint | Controller/service |
 | --- | --- |
-| `GET /api/medicine-stock-price-mappings?q=` | `MedicineStockPriceMappingApiController.getMedicineStockDetailsWithLimit` |
+| `GET /api/medicine-stock-price-mappings?q=&searchBy=` | `MedicineStockPriceMappingApiController.getMedicineStockDetailsWithLimit`; POS medicine search supports `all`, `medicine`, `generic`, `company`, `code`, `category` |
 | `GET /api/products/catalog` | `MedicineStockPriceMappingService.getCatalog` |
 | `GET /api/products/catalog/categories` | `getCatalogCategories` |
 | `GET /api/products/options/generics` | `getGenerics` |

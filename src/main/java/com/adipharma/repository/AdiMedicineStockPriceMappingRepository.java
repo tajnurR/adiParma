@@ -31,6 +31,31 @@ public interface AdiMedicineStockPriceMappingRepository extends JpaRepository<Ad
         join m.medicine med
         left join med.generic gen
         left join med.manufacturer man
+        where (:searchBy = 'all' and (
+                lower(med.brandCode) like lower(concat('%', :query, '%'))
+             or lower(med.brandName) like lower(concat('%', :query, '%'))
+             or lower(gen.genericName) like lower(concat('%', :query, '%'))
+             or lower(man.manufacturerName) like lower(concat('%', :query, '%'))
+             or lower(med.type) like lower(concat('%', :query, '%'))
+        ))
+        or (:searchBy = 'medicine' and lower(med.brandName) like lower(concat('%', :query, '%')))
+        or (:searchBy = 'generic' and lower(gen.genericName) like lower(concat('%', :query, '%')))
+        or (:searchBy = 'company' and lower(man.manufacturerName) like lower(concat('%', :query, '%')))
+        or (:searchBy = 'code' and lower(med.brandCode) like lower(concat('%', :query, '%')))
+        or (:searchBy = 'category' and lower(med.type) like lower(concat('%', :query, '%')))
+        """)
+    Page<AdiMedicineStockPriceMapping> searchByTermAndScope(
+        @Param("query") String query,
+        @Param("searchBy") String searchBy,
+        Pageable pageable
+    );
+
+    @EntityGraph(attributePaths = { "medicine", "medicine.generic", "medicine.manufacturer" })
+    @Query("""
+        select m from AdiMedicineStockPriceMapping m
+        join m.medicine med
+        left join med.generic gen
+        left join med.manufacturer man
         where (:query = '' or lower(med.brandCode) like lower(concat('%', :query, '%'))
            or lower(med.brandName) like lower(concat('%', :query, '%'))
            or lower(gen.genericName) like lower(concat('%', :query, '%'))

@@ -381,60 +381,103 @@ window.BusinessPages.register("pos", function (root) {
     }
 
     const productSearchInput = root.querySelector(".pos-search-input");
+    const productSearchTypeSelect = root.querySelector("#pos-search-type");
     let productSearchTimer = null;
+    let productSearchRequestId = 0;
 
     function mapApiProduct(item) {
         const medicine = item.medicine || {};
         const generic = medicine.generic || {};
+        const manufacturer = medicine.manufacturer || {};
         const brandCode = medicine.brandCode || "";
         const brandName = medicine.brandName || "";
         const strength = medicine.strength ? ` ${medicine.strength}` : "";
         const genericCode = generic.genericCode || "";
         const genericName = generic.genericName || "";
+        const manufacturerName = manufacturer.manufacturerName || "";
+        const category = medicine.type || "";
+        const details = [
+            genericCode || genericName ? `[${genericCode}] - ${genericName}` : "",
+            manufacturerName,
+            category
+        ].filter(Boolean).join(" • ");
         return {
             id: item.id,
             brandCode,
             brandName,
             brandLine: `[${brandCode}] - ${brandName}${strength}`,
-            genericLine: `[${genericCode}] - ${genericName}`,
+            genericLine: details || "—",
             price: Number(item.price || 0),
             stock: Number(item.qty || 0)
         };
     }
 
-    function fetchProducts(query) {
-        const url = `/api/medicine-stock-price-mappings?q=${encodeURIComponent(query)}`;
-        return fetch(url)
+    function resetProductResults() {
+        products = [];
+        renderProducts();
+        if (productsContainer) {
+            productsContainer.scrollTop = 0;
+        }
+    }
+
+    function fetchProducts(query, searchBy) {
+        const params = new URLSearchParams({
+            q: query,
+            searchBy
+        });
+        return fetch(`/api/medicine-stock-price-mappings?${params.toString()}`)
             .then((response) => response.json())
             .then((data) => Array.isArray(data) ? data.map(mapApiProduct) : []);
     }
 
     function runProductSearch(query) {
-        fetchProducts(query)
+        const requestId = ++productSearchRequestId;
+        const searchBy = productSearchTypeSelect?.value || "all";
+        resetProductResults();
+        fetchProducts(query, searchBy)
             .then((items) => {
+                if (requestId !== productSearchRequestId) return;
                 products = items;
                 renderProducts();
+                productsContainer.scrollTop = 0;
             })
             .catch(() => {
-                products = [];
-                renderProducts();
+                if (requestId !== productSearchRequestId) return;
+                resetProductResults();
             });
     }
 
+    function scheduleProductSearch() {
+        const value = productSearchInput?.value || "";
+        if (productSearchTimer) {
+            clearTimeout(productSearchTimer);
+        }
+        productSearchTimer = setTimeout(() => {
+            if (value.trim().length >= 3) {
+                runProductSearch(value.trim());
+            } else {
+                productSearchRequestId++;
+                resetProductResults();
+            }
+        }, 250);
+    }
+
     if (productSearchInput) {
-        productSearchInput.addEventListener("input", (event) => {
-            const value = event.target.value || "";
+        productSearchInput.addEventListener("input", scheduleProductSearch);
+    }
+
+    if (productSearchTypeSelect) {
+        productSearchTypeSelect.addEventListener("change", () => {
             if (productSearchTimer) {
                 clearTimeout(productSearchTimer);
             }
-            productSearchTimer = setTimeout(() => {
-                if (value.trim().length >= 3) {
-                    runProductSearch(value);
-                } else {
-                    products = [];
-                    renderProducts();
-                }
-            }, 250);
+            const value = productSearchInput?.value.trim() || "";
+            if (value.length >= 3) {
+                runProductSearch(value);
+            } else {
+                productSearchRequestId++;
+                resetProductResults();
+            }
         });
     }
 

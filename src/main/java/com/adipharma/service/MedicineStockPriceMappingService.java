@@ -41,12 +41,27 @@ public class MedicineStockPriceMappingService {
     }
 
     public List<AdiMedicineStockPriceMapping> getMedicineStockDetailsWithLimit(String query) {
+        return getMedicineStockDetailsWithLimit(query, "all");
+    }
+
+    public List<AdiMedicineStockPriceMapping> getMedicineStockDetailsWithLimit(String query, String searchBy) {
         String trimmed = query == null ? "" : query.trim();
+        String scope = normalizeSearchBy(searchBy);
         PageRequest pageRequest = PageRequest.of(0, MAX_RESULTS, Sort.by("id").descending());
         if (trimmed.isEmpty()) {
             return repository.findAllWithMedicine(pageRequest).getContent();
         }
-        return repository.searchByBrandCodeOrName(trimmed, pageRequest).getContent();
+        return repository.searchByTermAndScope(trimmed, scope, pageRequest).getContent();
+    }
+
+    private static String normalizeSearchBy(String searchBy) {
+        if (searchBy == null) {
+            return "all";
+        }
+        return switch (searchBy.trim().toLowerCase()) {
+            case "medicine", "generic", "company", "code", "category" -> searchBy.trim().toLowerCase();
+            default -> "all";
+        };
     }
 
     public Map<String, Object> getCatalog(

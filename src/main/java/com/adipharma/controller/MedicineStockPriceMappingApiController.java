@@ -28,9 +28,10 @@ public class MedicineStockPriceMappingApiController {
 
     @GetMapping("medicine-stock-price-mappings")
     public List<AdiMedicineStockPriceMapping> getMedicineStockDetailsWithLimit(
-        @RequestParam(name = "q", required = false, defaultValue = "") String query
+        @RequestParam(name = "q", required = false, defaultValue = "") String query,
+        @RequestParam(name = "searchBy", required = false, defaultValue = "all") String searchBy
     ) {
-        return service.getMedicineStockDetailsWithLimit(query);
+        return service.getMedicineStockDetailsWithLimit(query, searchBy);
     }
 
     @GetMapping("products/catalog")
