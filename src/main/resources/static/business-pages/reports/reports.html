@@ -1,92 +1,331 @@
-<section class="reports-page">
-    <div class="reports-header">
-        <h1>Analytics & Reports</h1>
-        <button class="reports-export-btn" type="button">
-            <span class="material-symbols-outlined">download</span>
-            Export Report
-        </button>
-    </div>
-
-    <div class="reports-card reports-date-card">
-        <div class="reports-card-title">
-            <span class="material-symbols-outlined">calendar_month</span>
-            Date Range Selection
+<section class="reports-page" aria-labelledby="reports-title">
+    <header class="reports-header">
+        <div>
+            <h1 id="reports-title">Analytics & Reports</h1>
+            <p>Sales, prescriptions, stock risk, and export-ready pharmacy reports.</p>
         </div>
-        <div class="reports-date-grid">
-            <label>
-                <span>Start Date</span>
-                <input type="date" id="reports-start-date" />
+
+        <div class="reports-global-filters" aria-label="Report filters">
+            <label class="reports-filter-field">
+                <span>Branch</span>
+                <select id="reports-branch" aria-label="Select branch">
+                    <option value="main" selected>Main pharmacy</option>
+                    <option value="mirpur">Mirpur branch</option>
+                    <option value="dhanmondi">Dhanmondi branch</option>
+                </select>
             </label>
-            <label>
-                <span>End Date</span>
-                <input type="date" id="reports-end-date" />
+
+            <label class="reports-filter-field">
+                <span>Date range</span>
+                <select id="reports-range" aria-label="Select date range">
+                    <option value="today">Today</option>
+                    <option value="7d">Last 7 days</option>
+                    <option value="30d" selected>Last 30 days</option>
+                    <option value="month">This month</option>
+                    <option value="custom">Custom</option>
+                </select>
             </label>
+
+            <div class="reports-custom-dates" id="reports-custom-dates" aria-label="Custom date range">
+                <label>
+                    <span>Start</span>
+                    <input type="date" id="reports-start-date" />
+                </label>
+                <label>
+                    <span>End</span>
+                    <input type="date" id="reports-end-date" />
+                </label>
+            </div>
+
+            <button class="reports-export-btn" type="button">
+                <span class="material-symbols-outlined">download</span>
+                Export
+            </button>
         </div>
-    </div>
+    </header>
 
-    <div class="reports-grid">
-        <div class="reports-card">
-            <div class="reports-card-title">
-                <span class="material-symbols-outlined">analytics</span>
-                Sales Summary
-            </div>
-            <div class="reports-metrics">
-                <div class="reports-metric is-highlight">
-                    <span>Total Sales</span>
-                    <strong id="reports-total-sales">0</strong>
-                </div>
-                <div class="reports-metric is-highlight">
-                    <span>Total Revenue</span>
-                    <strong id="reports-total-revenue">৳0.00</strong>
-                </div>
-                <div class="reports-metric is-highlight">
-                    <span>Avg. Order Value</span>
-                    <strong id="reports-avg-order">৳0.00</strong>
-                </div>
-            </div>
+    <div class="reports-status" id="reports-status" role="status" aria-live="polite"></div>
 
-            <div class="reports-table">
-                <div class="reports-table-title">Top Selling Products</div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Product</th>
-                            <th>Qty Sold</th>
-                            <th>Revenue</th>
-                        </tr>
-                    </thead>
-                    <tbody id="reports-top-products">
-                        <tr>
-                            <td colspan="3" class="reports-empty">Loading...</td>
-                        </tr>
-                    </tbody>
-                </table>
+    <section class="reports-kpis" aria-label="Business performance">
+        <article class="reports-kpi-card">
+            <div class="reports-kpi-label">
+                <span class="material-symbols-outlined">payments</span>
+                <span>Total sales</span>
+                <span class="reports-info-wrap">
+                    <button class="reports-info-btn" type="button" aria-label="How total sales is calculated" aria-describedby="reports-tip-total-sales">i</button>
+                    <span class="reports-tooltip" id="reports-tip-total-sales" role="tooltip">Total value of completed invoices in the selected date range, after item discounts. This is the main revenue number.</span>
+                </span>
+            </div>
+            <strong id="reports-total-sales" class="reports-kpi-value skeleton">৳0</strong>
+            <span id="reports-sales-delta" class="reports-delta">Loading</span>
+        </article>
+
+        <article class="reports-kpi-card">
+            <div class="reports-kpi-label">
+                <span class="material-symbols-outlined">trending_up</span>
+                <span>Gross margin</span>
+                <span class="reports-info-wrap">
+                    <button class="reports-info-btn" type="button" aria-label="How gross margin is calculated" aria-describedby="reports-tip-gross-margin">i</button>
+                    <span class="reports-tooltip" id="reports-tip-gross-margin" role="tooltip">Gross margin = sales minus medicine cost, divided by sales. It shows how much profit remains before expenses.</span>
+                </span>
+            </div>
+            <strong id="reports-gross-margin" class="reports-kpi-value skeleton">0%</strong>
+            <span id="reports-margin-delta" class="reports-delta">Loading</span>
+        </article>
+
+        <article class="reports-kpi-card">
+            <div class="reports-kpi-label">
+                <span class="material-symbols-outlined">prescriptions</span>
+                <span>Prescriptions filled</span>
+                <span class="reports-info-wrap">
+                    <button class="reports-info-btn" type="button" aria-label="How prescriptions filled is calculated" aria-describedby="reports-tip-prescriptions">i</button>
+                    <span class="reports-tooltip" id="reports-tip-prescriptions" role="tooltip">Count of prescription-linked sales or prescription medicine lines completed during the selected period.</span>
+                </span>
+            </div>
+            <strong id="reports-prescriptions" class="reports-kpi-value skeleton">0</strong>
+            <span id="reports-rx-delta" class="reports-delta">Loading</span>
+        </article>
+
+        <article class="reports-kpi-card">
+            <div class="reports-kpi-label">
+                <span class="material-symbols-outlined">shopping_basket</span>
+                <span>Avg basket value</span>
+                <span class="reports-info-wrap">
+                    <button class="reports-info-btn" type="button" aria-label="How average basket value is calculated" aria-describedby="reports-tip-avg-basket">i</button>
+                    <span class="reports-tooltip" id="reports-tip-avg-basket" role="tooltip">Average basket value = total sales divided by number of invoices. It shows the average customer purchase size.</span>
+                </span>
+            </div>
+            <strong id="reports-avg-basket" class="reports-kpi-value skeleton">৳0</strong>
+            <span id="reports-basket-delta" class="reports-delta">Loading</span>
+        </article>
+    </section>
+
+    <section class="reports-attention" aria-label="Needs attention">
+        <article class="reports-alert-card is-warning" role="button" tabindex="0" data-drill="/stock-alerts?type=expiring">
+            <span class="reports-alert-icon material-symbols-outlined">event_busy</span>
+            <span>
+                <span class="reports-alert-label">
+                    Near-expiry stock value
+                    <span class="reports-info-wrap">
+                        <button class="reports-info-btn" type="button" aria-label="How near-expiry stock value is calculated" aria-describedby="reports-tip-expiry-value">i</button>
+                        <span class="reports-tooltip" id="reports-tip-expiry-value" role="tooltip">Selling value of stock batches expiring soon, usually within 30 days. Use this to discount, return, or move items quickly.</span>
+                    </span>
+                </span>
+                <strong id="reports-expiry-value" class="skeleton">৳0</strong>
+                <small id="reports-expiry-note">Within 30 days</small>
+            </span>
+        </article>
+
+        <article class="reports-alert-card is-danger" role="button" tabindex="0" data-drill="/stock-alerts?type=low">
+            <span class="reports-alert-icon material-symbols-outlined">priority_high</span>
+            <span>
+                <span class="reports-alert-label">
+                    Items below reorder point
+                    <span class="reports-info-wrap">
+                        <button class="reports-info-btn" type="button" aria-label="How reorder alerts are calculated" aria-describedby="reports-tip-low-stock">i</button>
+                        <span class="reports-tooltip" id="reports-tip-low-stock" role="tooltip">Number of stock items whose available quantity is at or below the reorder threshold, so they may stock out soon.</span>
+                    </span>
+                </span>
+                <strong id="reports-low-stock" class="skeleton">0</strong>
+                <small>Target stockout rate below 2%</small>
+            </span>
+        </article>
+
+        <article class="reports-alert-card is-neutral" role="button" tabindex="0" data-drill="/stock?status=dead">
+            <span class="reports-alert-icon material-symbols-outlined">inventory</span>
+            <span>
+                <span class="reports-alert-label">
+                    Dead stock value
+                    <span class="reports-info-wrap">
+                        <button class="reports-info-btn" type="button" aria-label="How dead stock value is calculated" aria-describedby="reports-tip-dead-stock">i</button>
+                        <span class="reports-tooltip" id="reports-tip-dead-stock" role="tooltip">Estimated value of products with no sale in 90 days. This helps identify cash locked in slow-moving stock.</span>
+                    </span>
+                </span>
+                <strong id="reports-dead-stock" class="skeleton">৳0</strong>
+                <small>No sale in 90 days</small>
+            </span>
+        </article>
+    </section>
+
+    <section class="reports-chart-card" aria-labelledby="reports-trend-title">
+        <div class="reports-section-header">
+            <div>
+                <div class="reports-title-with-info">
+                    <h2 id="reports-trend-title">Sales trend</h2>
+                    <span class="reports-info-wrap">
+                        <button class="reports-info-btn" type="button" aria-label="How sales trend is calculated" aria-describedby="reports-tip-sales-trend">i</button>
+                        <span class="reports-tooltip" id="reports-tip-sales-trend" role="tooltip">Daily sales totals for the current selected range compared with the previous equal-length period.</span>
+                    </span>
+                </div>
+                <p>Current period vs previous period</p>
+            </div>
+            <div class="reports-chart-legend" aria-label="Chart legend">
+                <span><i class="reports-legend-current"></i>Current</span>
+                <span><i class="reports-legend-previous"></i>Previous</span>
+            </div>
+        </div>
+        <div id="reports-sales-chart" class="reports-chart" role="img" aria-label="Line chart comparing current sales with the previous period">
+            <div class="reports-chart-empty">Loading chart...</div>
+        </div>
+    </section>
+
+    <section class="reports-panels" aria-label="Deeper analysis">
+        <article class="reports-panel">
+            <div class="reports-section-header">
+                <div>
+                    <div class="reports-title-with-info">
+                        <h2>Top products by revenue</h2>
+                        <span class="reports-info-wrap">
+                            <button class="reports-info-btn" type="button" aria-label="How top products are ranked" aria-describedby="reports-tip-top-products">i</button>
+                            <span class="reports-tooltip" id="reports-tip-top-products" role="tooltip">Products are ranked by sales revenue in the selected period: quantity sold multiplied by selling price after line discounts.</span>
+                        </span>
+                    </div>
+                    <p>Ranked by selected period revenue</p>
+                </div>
+            </div>
+            <div id="reports-top-products" class="reports-bar-list" aria-live="polite"></div>
+        </article>
+
+        <article class="reports-panel">
+            <div class="reports-section-header">
+                <div>
+                    <div class="reports-title-with-info">
+                        <h2>Sales by category</h2>
+                        <span class="reports-info-wrap">
+                            <button class="reports-info-btn" type="button" aria-label="How category sales are calculated" aria-describedby="reports-tip-category-sales">i</button>
+                            <span class="reports-tooltip" id="reports-tip-category-sales" role="tooltip">Share of total sales grouped by pharmacy category, such as Rx, OTC, wellness, and personal care.</span>
+                        </span>
+                    </div>
+                    <p>Rx, OTC, wellness, and personal care</p>
+                </div>
+            </div>
+            <div id="reports-category-mix" class="reports-category-list" aria-live="polite"></div>
+        </article>
+    </section>
+
+    <section class="reports-pharmacy-metrics" aria-label="Pharmacy health metrics">
+        <div class="reports-mini-metric">
+            <span class="reports-mini-label">
+                Inventory turnover
+                <span class="reports-info-wrap">
+                    <button class="reports-info-btn" type="button" aria-label="How inventory turnover is calculated" aria-describedby="reports-tip-turnover">i</button>
+                    <span class="reports-tooltip" id="reports-tip-turnover" role="tooltip">Inventory turnover = annualized medicine cost sold divided by average inventory value. Healthy pharmacy target is about 8-12 times per year.</span>
+                </span>
+            </span>
+            <strong id="reports-turnover">0x</strong>
+            <small>Target 8-12/yr</small>
+        </div>
+        <div class="reports-mini-metric">
+            <span class="reports-mini-label">
+                Stockout rate
+                <span class="reports-info-wrap">
+                    <button class="reports-info-btn" type="button" aria-label="How stockout rate is calculated" aria-describedby="reports-tip-stockout">i</button>
+                    <span class="reports-tooltip" id="reports-tip-stockout" role="tooltip">Stockout rate = out-of-stock items divided by active stocked items. Keep it below 2% to avoid missed sales.</span>
+                </span>
+            </span>
+            <strong id="reports-stockout-rate">0%</strong>
+            <small>Target below 2%</small>
+        </div>
+        <div class="reports-mini-metric">
+            <span class="reports-mini-label">
+                Expiry rate
+                <span class="reports-info-wrap">
+                    <button class="reports-info-btn" type="button" aria-label="How expiry rate is calculated" aria-describedby="reports-tip-expiry-rate">i</button>
+                    <span class="reports-tooltip" id="reports-tip-expiry-rate" role="tooltip">Expiry rate = near-expiry or expired stock value divided by total stock value. Keep it below 1% where possible.</span>
+                </span>
+            </span>
+            <strong id="reports-expiry-rate">0%</strong>
+            <small>Target below 1%</small>
+        </div>
+        <div class="reports-mini-metric">
+            <span class="reports-mini-label">
+                Revenue per Rx
+                <span class="reports-info-wrap">
+                    <button class="reports-info-btn" type="button" aria-label="How revenue per prescription is calculated" aria-describedby="reports-tip-revenue-rx">i</button>
+                    <span class="reports-tooltip" id="reports-tip-revenue-rx" role="tooltip">Revenue per Rx = prescription-linked sales divided by number of prescriptions filled in the selected period.</span>
+                </span>
+            </span>
+            <strong id="reports-revenue-rx">৳0</strong>
+            <small>New vs refill mix tracked</small>
+        </div>
+        <div class="reports-mini-metric">
+            <span class="reports-mini-label">
+                Payment mix
+                <span class="reports-info-wrap">
+                    <button class="reports-info-btn" type="button" aria-label="How payment mix is calculated" aria-describedby="reports-tip-payment-mix">i</button>
+                    <span class="reports-tooltip" id="reports-tip-payment-mix" role="tooltip">Payment mix shows the leading payment method by sales value across cash, card, mobile, insurance, or other methods.</span>
+                </span>
+            </span>
+            <strong id="reports-payment-mix">Cash</strong>
+            <small>Cash / card / mobile</small>
+        </div>
+    </section>
+
+    <section class="reports-presets" aria-labelledby="reports-presets-title">
+        <div class="reports-section-header">
+            <div>
+                <h2 id="reports-presets-title">Reports</h2>
+                <p>Export the common reports owners ask for every day.</p>
             </div>
         </div>
 
-        <div class="reports-card">
-            <div class="reports-card-title">
+        <div class="reports-preset-list">
+            <article class="reports-preset">
+                <span class="material-symbols-outlined">receipt_long</span>
+                <div>
+                    <strong>Daily sales & tax</strong>
+                    <p>Sales totals, discounts, VAT/tax placeholders, and payment mix.</p>
+                </div>
+                <div class="reports-preset-actions">
+                    <button type="button" data-export="pdf" data-report="daily-sales">PDF</button>
+                    <button type="button" data-export="csv" data-report="daily-sales">Excel/CSV</button>
+                </div>
+            </article>
+
+            <article class="reports-preset">
                 <span class="material-symbols-outlined">inventory_2</span>
-                Inventory Summary
-            </div>
-            <div class="reports-metrics">
-                <div class="reports-metric is-highlight">
-                    <span>Total Products</span>
-                    <strong id="reports-total-products">0</strong>
+                <div>
+                    <strong>Stock & expiry</strong>
+                    <p>Low stock, expiring items, stock value, and expiry rate.</p>
                 </div>
-                <div class="reports-metric is-highlight">
-                    <span>Stock Value</span>
-                    <strong id="reports-stock-value">৳0.00</strong>
+                <div class="reports-preset-actions">
+                    <button type="button" data-export="pdf" data-report="stock-expiry">PDF</button>
+                    <button type="button" data-export="csv" data-report="stock-expiry">Excel/CSV</button>
                 </div>
-                <div class="reports-metric">
-                    <span>Low Stock</span>
-                    <strong id="reports-low-stock">0</strong>
+            </article>
+
+            <article class="reports-preset">
+                <span class="material-symbols-outlined">local_shipping</span>
+                <div>
+                    <strong>Supplier purchases & dues</strong>
+                    <p>Supplier purchase and due summary once purchase APIs are connected.</p>
                 </div>
-                <div class="reports-metric">
-                    <span>Expiring Soon</span>
-                    <strong id="reports-expiring-soon">0</strong>
+                <div class="reports-preset-actions">
+                    <button type="button" data-export="pdf" data-report="supplier-dues">PDF</button>
+                    <button type="button" data-export="csv" data-report="supplier-dues">Excel/CSV</button>
                 </div>
-            </div>
+            </article>
+
+            <article class="reports-preset">
+                <span class="material-symbols-outlined">badge</span>
+                <div>
+                    <strong>Staff performance</strong>
+                    <p>Sales, prescriptions, and basket value by staff member.</p>
+                </div>
+                <div class="reports-preset-actions">
+                    <button type="button" data-export="pdf" data-report="staff-performance">PDF</button>
+                    <button type="button" data-export="csv" data-report="staff-performance">Excel/CSV</button>
+                </div>
+            </article>
+
+            <article class="reports-preset reports-custom-report">
+                <span class="material-symbols-outlined">tune</span>
+                <div>
+                    <strong>Custom report builder</strong>
+                    <p>Choose metrics, date grouping, product filters, and export format.</p>
+                </div>
+                <button type="button" class="reports-builder-btn">Build report</button>
+            </article>
         </div>
-    </div>
+    </section>
 </section>
